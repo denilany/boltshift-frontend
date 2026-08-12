@@ -5,9 +5,9 @@ import { NotificationDrawer } from "@/components/notification/notification-drawe
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Heart, Bell } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ViewTransition } from "react";
-import { useDeferredValue, useId, useState } from "react";
+import { useDeferredValue, useId } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,7 @@ import {
   MobileProfileDropdown,
   ProfileDropdown,
 } from "@/components/user-profile/user-profile-dropdown";
+import { useAuth } from "@/components/auth/auth-provider";
 import { useStoredCollectionCounts } from "@/hooks/use-stored-collection-counts";
 import { cn } from "@/lib/utils";
 
@@ -32,24 +33,23 @@ const actions = [
   { id: "cart", icon: ShoppingCart, href: "/cart" },
 ];
 
-const mockInitialAuthState = false;
-
 export function Profile() {
   const transitionScope = useId();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(mockInitialAuthState);
+  const router = useRouter();
+  const { isAuthenticated, signOut } = useAuth();
   const { wishlistCount, cartCount } = useStoredCollectionCounts();
   const deferredWishlistCount = useDeferredValue(wishlistCount);
   const deferredCartCount = useDeferredValue(cartCount);
   const profileDropdown = isAuthenticated ? (
-    <ProfileDropdown onLogout={() => setIsAuthenticated(false)} />
+    <ProfileDropdown onLogout={() => void signOut()} />
   ) : (
-    <GuestUserDropdown onSignIn={() => setIsAuthenticated(true)} />
+    <GuestUserDropdown onSignIn={() => router.push("/sign-in")} />
   );
   const mobileProfileDropdown = isAuthenticated ? (
-    <MobileProfileDropdown onLogout={() => setIsAuthenticated(false)} />
+    <MobileProfileDropdown onLogout={() => void signOut()} />
   ) : (
-    <MobileGuestUser onSignIn={() => setIsAuthenticated(true)} />
+    <MobileGuestUser onSignIn={() => router.push("/sign-in")} />
   );
 
   const countsByAction = {

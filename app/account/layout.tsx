@@ -3,6 +3,7 @@ import { Navbar, NavbarMobile } from "@/components/navigation/navbar";
 import { Footer } from "@/components/footer/footer-section";
 import { AccountSidenav } from "@/components/accounts/account-sidenav";
 import { SectionTitle } from "@/components/section-title";
+import { AuthGuard } from "@/components/auth/auth-guard";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -68,7 +69,9 @@ export default function AccountLayout({
           <AccountSidenav />
         </div>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          <AuthGuard>{children}</AuthGuard>
+        </main>
       </div>
 
       <Footer />

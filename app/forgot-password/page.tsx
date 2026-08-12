@@ -11,6 +11,8 @@ type ForgotPasswordPageProps = {
   searchParams?: {
     step?: string;
     email?: string;
+    uid?: string;
+    token?: string;
   };
 };
 
@@ -19,6 +21,15 @@ export default function ForgotPasswordPage({
 }: ForgotPasswordPageProps) {
   const step = Number(searchParams?.step);
   const email = searchParams?.email ?? "";
+  const uid = searchParams?.uid ?? "";
+  const token = searchParams?.token ?? "";
 
-  return <PasswordResetFlow step={step === 3 ? 3 : 1} email={email} />;
+  return (
+    <PasswordResetFlow
+      step={step === 3 ? 3 : 1}
+      email={email}
+      uid={uid}
+      token={token}
+    />
+  );
 }
