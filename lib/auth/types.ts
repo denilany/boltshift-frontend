@@ -5,6 +5,7 @@ export type AuthUser = {
   firstName?: string;
   lastName?: string;
   email?: string;
+  avatar?: string;
   phone?: string;
   phoneNumber?: string;
   dateOfBirth?: string;

@@ -89,6 +89,56 @@ function normalizeFieldErrors(value: unknown): AuthFieldErrors | undefined {
   return Object.keys(fieldErrors).length ? fieldErrors : undefined;
 }
 
+function mergeProfilePayload(payload: unknown): Record<string, unknown> | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  const nestedUser =
+    (isRecord(payload.user) && payload.user) ||
+    (isRecord(payload.profile) && payload.profile) ||
+    (isRecord(payload.account) && payload.account) ||
+    (isRecord(payload.data) &&
+      isRecord(payload.data.user) &&
+      payload.data.user) ||
+    null;
+
+  return {
+    ...(isRecord(nestedUser) ? nestedUser : {}),
+    ...payload,
+  };
+}
+
+function normalizeGender(value: unknown): AuthGender | "" {
+  if (value === "male" || value === "female" || value === "other") {
+    return value;
+  }
+
+  if (value === "M") {
+    return "male";
+  }
+
+  if (value === "F") {
+    return "female";
+  }
+
+  if (value === "O") {
+    return "other";
+  }
+
+  return "";
+}
+
+function toBackendGender(value: AuthGender | "") {
+  const map: Record<AuthGender, "M" | "F" | "O"> = {
+    male: "M",
+    female: "F",
+    other: "O",
+  };
+
+  return value ? map[value] : undefined;
+}
+
 function normalizeUser(user: unknown): AuthUser | null {
   if (!isRecord(user)) {
     return null;
@@ -97,22 +147,21 @@ function normalizeUser(user: unknown): AuthUser | null {
   const firstName = user.firstName ?? user.first_name;
   const lastName = user.lastName ?? user.last_name;
   const email = user.email;
+  const avatar = user.avatar;
   const phone = user.phone ?? user.phoneNumber ?? user.phone_number;
   const dateOfBirth = user.dateOfBirth ?? user.date_of_birth;
-  const gender = user.gender as AuthGender | "" | undefined;
+  const gender = normalizeGender(user.gender);
 
   return {
     id: user.id as string | number | undefined,
     firstName: typeof firstName === "string" ? firstName : undefined,
     lastName: typeof lastName === "string" ? lastName : undefined,
     email: typeof email === "string" ? email : undefined,
+    avatar: typeof avatar === "string" ? avatar : undefined,
     phone: typeof phone === "string" ? phone : undefined,
     phoneNumber: typeof phone === "string" ? phone : undefined,
     dateOfBirth: typeof dateOfBirth === "string" ? dateOfBirth : undefined,
-    gender:
-      gender === "male" || gender === "female" || gender === "other"
-        ? gender
-        : "",
+    gender,
     isEmailVerified:
       typeof user.isEmailVerified === "boolean"
         ? user.isEmailVerified
@@ -163,17 +212,7 @@ function extractSession(payload: unknown, fallbackUser?: AuthUser | null): AuthS
     readString(payload.refresh) ||
     readString(payload.refresh_token);
 
-  const payloadData = isRecord(payload.data) ? payload.data : null;
-
-  const user = normalizeUser(
-    payload.user ??
-      payload.profile ??
-      payload.account ??
-      (payloadData ? payloadData.user : null) ??
-      (payloadData ? payloadData.profile : null) ??
-      fallbackUser ??
-      null,
-  );
+  const user = normalizeUser(mergeProfilePayload(payload) ?? fallbackUser ?? null);
 
   if (!accessToken || !refreshToken) {
     return null;
@@ -469,15 +508,14 @@ export async function getCurrentUser() {
     method: "GET",
   }, { retryOnUnauthorized: true });
 
-  return normalizeUser(
-    isRecord(payload) ? payload.user ?? payload.profile ?? payload : payload,
-  );
+  return normalizeUser(mergeProfilePayload(payload));
 }
 
 export type UpdateProfileInput = Partial<{
   firstName: string;
   lastName: string;
   email: string;
+  avatar: string;
   phoneNumber: string;
   dateOfBirth: string;
   gender: AuthGender | "";
@@ -490,18 +528,17 @@ export async function updateProfile(input: UpdateProfileInput) {
       first_name: input.firstName,
       last_name: input.lastName,
       email: input.email,
-      phone_number: input.phoneNumber,
+      avatar: input.avatar,
+      phone: input.phoneNumber,
       date_of_birth: input.dateOfBirth || undefined,
-      gender: input.gender || undefined,
+      gender: toBackendGender(input.gender || ""),
     }),
     headers: {
       "Content-Type": "application/json",
     },
   }, { retryOnUnauthorized: true });
 
-  const user = normalizeUser(
-    isRecord(payload) ? payload.user ?? payload.profile ?? payload : payload,
-  );
+  const user = normalizeUser(mergeProfilePayload(payload));
 
   if (!user) {
     throw new AuthApiError({

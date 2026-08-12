@@ -28,6 +28,7 @@ export function BasicDetails() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState<AuthGender | "">("");
@@ -51,6 +52,7 @@ export function BasicDetails() {
         setFirstName(user.firstName ?? "");
         setLastName(user.lastName ?? "");
         setEmail(user.email ?? "");
+        setAvatar(user.avatar ?? "");
         setPhoneNumber(user.phoneNumber ?? "");
         setDateOfBirth(user.dateOfBirth?.slice(0, 10) ?? "");
         setGender(user.gender ?? "");
@@ -78,6 +80,7 @@ export function BasicDetails() {
       firstName,
       lastName,
       email,
+      avatar,
       phoneNumber,
       dateOfBirth,
       gender,
@@ -135,7 +138,10 @@ export function BasicDetails() {
           setIsSaving(true);
 
           try {
-            await updateProfile(values);
+            await updateProfile({
+              ...values,
+              avatar,
+            });
           } catch (error) {
             const normalized = handleAuthError(error);
 
@@ -159,6 +165,17 @@ export function BasicDetails() {
           }
         }}
       >
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <Label htmlFor="avatar">Avatar URL</Label>
+          <Input
+            id="avatar"
+            value={avatar}
+            onChange={(event) => setAvatar(event.target.value)}
+            className="h-auto sm:h-13 max-w-120"
+            placeholder="https://..."
+          />
+        </div>
+
         <div className="flex flex-col gap-1">
           <Label htmlFor="first-name">First Name</Label>
           <Input
