@@ -5,10 +5,13 @@ export type AuthUser = {
   firstName?: string;
   lastName?: string;
   email?: string;
+  phone?: string;
   phoneNumber?: string;
   dateOfBirth?: string;
   gender?: AuthGender | "";
   isEmailVerified?: boolean;
+  isVendor?: boolean;
+  isCustomer?: boolean;
   fullName?: string;
 };
 

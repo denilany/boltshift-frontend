@@ -97,7 +97,7 @@ function normalizeUser(user: unknown): AuthUser | null {
   const firstName = user.firstName ?? user.first_name;
   const lastName = user.lastName ?? user.last_name;
   const email = user.email;
-  const phoneNumber = user.phoneNumber ?? user.phone_number ?? user.phone;
+  const phone = user.phone ?? user.phoneNumber ?? user.phone_number;
   const dateOfBirth = user.dateOfBirth ?? user.date_of_birth;
   const gender = user.gender as AuthGender | "" | undefined;
 
@@ -106,7 +106,8 @@ function normalizeUser(user: unknown): AuthUser | null {
     firstName: typeof firstName === "string" ? firstName : undefined,
     lastName: typeof lastName === "string" ? lastName : undefined,
     email: typeof email === "string" ? email : undefined,
-    phoneNumber: typeof phoneNumber === "string" ? phoneNumber : undefined,
+    phone: typeof phone === "string" ? phone : undefined,
+    phoneNumber: typeof phone === "string" ? phone : undefined,
     dateOfBirth: typeof dateOfBirth === "string" ? dateOfBirth : undefined,
     gender:
       gender === "male" || gender === "female" || gender === "other"
@@ -124,6 +125,18 @@ function normalizeUser(user: unknown): AuthUser | null {
         : typeof user.full_name === "string"
           ? user.full_name
           : [firstName, lastName].filter(Boolean).join(" ") || undefined,
+    isVendor:
+      typeof user.isVendor === "boolean"
+        ? user.isVendor
+        : typeof user.is_vendor === "boolean"
+          ? user.is_vendor
+          : undefined,
+    isCustomer:
+      typeof user.isCustomer === "boolean"
+        ? user.isCustomer
+        : typeof user.is_customer === "boolean"
+          ? user.is_customer
+          : undefined,
   };
 }
 
