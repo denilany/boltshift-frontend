@@ -1,3 +1,5 @@
+import type { ChangeEventHandler } from "react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -7,6 +9,9 @@ type FormInputFieldProps = {
   label: string;
   type?: string;
   placeholder?: string;
+  value?: string;
+  onChange?: ChangeEventHandler<HTMLInputElement>;
+  error?: string | null;
   className?: string;
   inputClassName?: string;
 };
@@ -16,6 +21,9 @@ export function FormInputField({
   label,
   type = "text",
   placeholder,
+  value,
+  onChange,
+  error,
   className,
   inputClassName,
 }: FormInputFieldProps) {
@@ -32,11 +40,15 @@ export function FormInputField({
         id={id}
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        aria-invalid={Boolean(error)}
         className={cn(
           "hover:ring-1 hover:ring-ring hover:ring-offset-2",
           inputClassName,
         )}
       />
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   );
 }

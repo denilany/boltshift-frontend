@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { AccountSocialButtons } from "@/app/account/profile/account-social-buttons";
 import { SectionHeadings } from "@/components/accounts/section-headings";
+import { FormInputField } from "@/components/checkout/form-input-field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -123,7 +124,7 @@ export function BasicDetails() {
       </div>
 
       <form
-        className="grid grid-cols-1 gap-y-6 gap-x-8 text-xs font-medium w-full max-w-248 sm:grid-cols-2"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6 text-xs font-medium w-full max-w-248"
         onSubmit={async (event) => {
           event.preventDefault();
           setLoadError(null);
@@ -165,59 +166,31 @@ export function BasicDetails() {
           }
         }}
       >
-        <div className="flex flex-col gap-1 sm:col-span-2">
-          <Label htmlFor="avatar">Avatar URL</Label>
-          <Input
-            id="avatar"
-            value={avatar}
-            onChange={(event) => setAvatar(event.target.value)}
-            className="h-auto sm:h-13 max-w-120"
-            placeholder="https://..."
-          />
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="first-name">First Name</Label>
-          <Input
-            id="first-name"
-            value={firstName}
-            onChange={(event) => setFirstName(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.firstName)}
-            className="h-auto sm:h-13 max-w-120"
-          />
-          {fieldErrors.firstName ? (
-            <p className="text-xs text-destructive">{fieldErrors.firstName}</p>
-          ) : null}
-        </div>
+        <FormInputField
+          id="first-name"
+          label="First Name"
+          value={firstName}
+          onChange={(event) => setFirstName(event.target.value)}
+          error={fieldErrors.firstName}
+        />
 
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="last-name">Last Name</Label>
-          <Input
-            id="last-name"
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.lastName)}
-            className="h-auto sm:h-13 max-w-120"
-          />
-          {fieldErrors.lastName ? (
-            <p className="text-xs text-destructive">{fieldErrors.lastName}</p>
-          ) : null}
-        </div>
+        <FormInputField
+          id="last-name"
+          label="Last Name"
+          value={lastName}
+          onChange={(event) => setLastName(event.target.value)}
+          error={fieldErrors.lastName}
+        />
 
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="email">Email Address</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            aria-invalid={Boolean(fieldErrors.email)}
-            className="h-auto sm:h-13 max-w-120"
-          />
-          {fieldErrors.email ? (
-            <p className="text-xs text-destructive">{fieldErrors.email}</p>
-          ) : null}
-        </div>
+        <FormInputField
+          id="email"
+          label="Email Address"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          error={fieldErrors.email}
+        />
 
         <div className="flex flex-col gap-1 text-muted-foreground text-xs font-medium">
           <Label htmlFor="phone">Phone Number</Label>
