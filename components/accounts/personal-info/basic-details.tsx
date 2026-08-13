@@ -173,6 +173,7 @@ export function BasicDetails() {
           value={firstName}
           onChange={(event) => setFirstName(event.target.value)}
           error={fieldErrors.firstName}
+          className="h-auto sm:h-13 max-w-120"
         />
 
         <FormInputField
@@ -181,6 +182,7 @@ export function BasicDetails() {
           value={lastName}
           onChange={(event) => setLastName(event.target.value)}
           error={fieldErrors.lastName}
+          className="h-auto sm:h-13 max-w-120"
         />
 
         <FormInputField
@@ -190,6 +192,7 @@ export function BasicDetails() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           error={fieldErrors.email}
+          className="h-auto sm:h-13 max-w-120"
         />
 
         <div className="flex flex-col gap-1 text-muted-foreground text-xs font-medium">
