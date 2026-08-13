@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { AccountSocialButtons } from "@/app/account/profile/account-social-buttons";
 import { SectionHeadings } from "@/components/accounts/section-headings";
 import { FormInputField } from "@/components/checkout/form-input-field";
+import { DatePickerField } from "@/app/account/profile/date-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SelectList } from "@/components/dropdown/select";
@@ -215,12 +215,10 @@ export function BasicDetails() {
 
         <div className="w-full max-w-120 flex flex-col gap-1 text-muted-foreground text-xs font-medium">
           <Label htmlFor="birthday">Birthday</Label>
-          <Input
+          <DatePickerField
             id="birthday"
-            type="date"
             value={dateOfBirth}
-            onChange={(event) => setDateOfBirth(event.target.value)}
-            className="h-auto sm:h-13 max-w-120"
+            onChange={setDateOfBirth}
             aria-invalid={Boolean(fieldErrors.dateOfBirth)}
           />
           {fieldErrors.dateOfBirth ? (
