@@ -28,6 +28,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const accessToken = session?.accessToken ?? null;
+  const refreshToken = session?.refreshToken ?? null;
 
   useEffect(() => {
     const syncFromStorage = () => {
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!session) {
+    if (!accessToken || !refreshToken) {
       return;
     }
 
@@ -58,14 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const hydrateUser = async () => {
       try {
         const user = await getCurrentUser();
+        const currentSession = readStoredSession();
 
         if (cancelled) {
           return;
         }
 
-        if (user) {
+        if (user && currentSession) {
           writeStoredSession({
-            ...session,
+            ...currentSession,
             user,
           });
         }
@@ -81,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [accessToken, refreshToken]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -128,4 +131,3 @@ export function useAuth() {
 
   return context;
 }
-
