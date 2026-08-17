@@ -10,13 +10,25 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { SelectList } from "@/components/dropdown/select";
-import { handleAuthError, getCurrentUser, updateProfile } from "@/lib/auth/client";
+import {
+  handleAuthError,
+  getCurrentUser,
+  updateProfile,
+} from "@/lib/auth/client";
 import { profileSchema } from "@/lib/auth/schemas";
 import type { AuthGender } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
 
 type ProfileFieldErrors = Partial<
-  Record<"firstName" | "lastName" | "email" | "phoneNumber" | "dateOfBirth" | "gender", string>
+  Record<
+    | "firstName"
+    | "lastName"
+    | "email"
+    | "phoneNumber"
+    | "dateOfBirth"
+    | "gender",
+    string
+  >
 >;
 
 const genderOptions: Array<{ label: string; value: AuthGender }> = [
@@ -166,7 +178,6 @@ export function BasicDetails() {
           }
         }}
       >
-
         <FormInputField
           id="first-name"
           label="First Name"
@@ -252,12 +263,6 @@ export function BasicDetails() {
           {saveError ? (
             <p className="text-sm text-destructive">{saveError}</p>
           ) : null}
-
-          <div className="flex justify-end">
-            <Button type="submit" size="lg" disabled={isLoading || isSaving}>
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
         </div>
       </form>
     </div>
