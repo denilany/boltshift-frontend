@@ -5,11 +5,12 @@ type titleProps = {
   icon: string;
   title: string;
   className?: string;
+  id?: string;
 };
 
-export function SectionTitle({ alt, icon, title, className }: titleProps) {
+export function SectionTitle({ alt, icon, title, className, id }: titleProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div id={id} className={cn("flex items-center gap-2", className)}>
       <div className="flex items-center justify-center">
         <img src={icon} alt={alt} className="w-8 h-8" />
       </div>

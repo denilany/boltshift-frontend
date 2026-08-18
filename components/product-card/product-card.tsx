@@ -25,6 +25,7 @@ import { useStoredCartItem } from "@/hooks/use-stored-cart-item";
 type ProductCardProps = {
   variant?: ProductVariant;
   product: Product;
+  href?: string;
   className?: string;
 };
 
@@ -328,6 +329,8 @@ function CenteredContent({
   product: Product;
   price: string;
 }) {
+  const categoryLabel = product.category.replace(/-/g, " ");
+
   return (
     <>
       <div className="grid gap-1">
@@ -385,16 +388,17 @@ function CatalogContent({
 export function ProductCard({
   variant = "default",
   product,
+  href,
   className,
 }: ProductCardProps) {
   // Format display-only values once so child sections stay presentation-focused.
   const price = EditNum(product.price);
   const ratio = GetRatio(variant);
+  const productHref =
+    href ?? `/catalog/${product.category}/${product.subcategory}/${product.slug ?? product.id}`;
 
   return (
-    <Link
-      href={`/catalog/${product.category}/${product.subcategory}/${product.id}`}
-    >
+    <Link href={productHref}>
       <Card
         className={cn(
           "mx-auto w-full p-0 hover:ring-2 hover:ring-ring hover:ring-offset-2 hover:shadow-md hover:cursor-pointer transition-all duration-200 ease-in-out shadow-none",

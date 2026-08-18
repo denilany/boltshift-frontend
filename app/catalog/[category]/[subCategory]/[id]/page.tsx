@@ -21,7 +21,9 @@ export default async function ProductDetails({
   params: Promise<{ category: string; subCategory: string; id: string }>;
 }) {
   const { category, subCategory, id } = await params;
-  const product = GetProductItems().find((p) => p.id === Number(id));
+  const product = GetProductItems().find(
+    (p) => String(p.id) === id || p.slug === id,
+  );
   const productName = product?.name || id;
 
   const title = formatCategoryName(category);

@@ -7,7 +7,7 @@ import {
   STORED_COLLECTIONS_CHANGED_EVENT,
 } from "@/lib/wishlist";
 
-export function useStoredCartItem(productId: number) {
+export function useStoredCartItem(productId: number | string) {
   const [isInCart, setIsInCart] = useState(false);
 
   useEffect(() => {

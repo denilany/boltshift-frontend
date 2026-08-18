@@ -24,7 +24,8 @@ export type Variant = {
 };
 
 type Product = {
-  id: number;
+  id: number | string;
+  slug?: string;
   images: string[];
   name: string;
   description: string;
@@ -33,6 +34,7 @@ type Product = {
   itemsLeft: number;
   ratings: number;
   reviews: number;
+  brand?: string;
 
   category: Category;
   subcategory: Subcategory;

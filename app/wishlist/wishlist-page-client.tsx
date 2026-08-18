@@ -48,7 +48,7 @@ export function WishlistPageClient() {
     dispatchWishlist({ type: "clear" });
   };
 
-  const addItemToCart = (productId: number, quantity: number) => {
+  const addItemToCart = (productId: number | string, quantity: number) => {
     writeStoredCart(
       addWishlistToCart(readStoredCart([]), [{ productId, quantity }]),
     );
