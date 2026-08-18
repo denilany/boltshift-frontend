@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import InstallPrompt from "@/components/install-prompt";
 import Script from "next/script";
 import { AppShell } from "@/components/app-shell";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { ServiceWorkerBootstrap } from "@/components/service-worker-bootstrap";
 import "./globals.css";
 
@@ -88,8 +89,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
           enableSystem
           disableTransitionOnChange
         >
-          <ServiceWorkerBootstrap />
-          <AppShell>{children}</AppShell>
+          <AuthProvider>
+            <ServiceWorkerBootstrap />
+            <AppShell>{children}</AppShell>
+          </AuthProvider>
         </ThemeProvider>
         <Toaster />
         <InstallPrompt />

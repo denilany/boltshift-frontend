@@ -25,7 +25,7 @@ import { PasswordResetFooter } from "@/components/password-reset/password-reset-
 import { PasswordResetProgress } from "@/components/password-reset/password-reset-progress";
 
 type SetNewPasswordProps = {
-  onSubmit?: () => void | Promise<void>;
+  onSubmit?: (password: string, confirmPassword: string) => void | Promise<void>;
   isSubmitting?: boolean;
   errorMessage?: string;
 };
@@ -101,7 +101,7 @@ export function SetNewPassword({
                 return;
               }
 
-              void onSubmit?.();
+              void onSubmit?.(password, retypePassword);
             }}
           >
             <div className="grid gap-1">

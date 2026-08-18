@@ -20,6 +20,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  confirmPasswordReset,
+  handleAuthError,
+  requestPasswordReset,
+} from "@/lib/auth/client";
+import { forgotPasswordSchema, resetPasswordSchema } from "@/lib/auth/schemas";
 import { cn } from "@/lib/utils";
 
 type PasswordResetStep = 1 | 2 | 3 | 4;
@@ -27,6 +33,8 @@ type PasswordResetStep = 1 | 2 | 3 | 4;
 type PasswordResetFlowProps = {
   step?: PasswordResetStep;
   email?: string;
+  uid?: string;
+  token?: string;
 };
 
 const sidebarSteps = [
@@ -149,9 +157,13 @@ function PasswordResetComplete() {
 export function PasswordResetFlow({
   step = 1,
   email = "",
+  uid = "",
+  token = "",
 }: PasswordResetFlowProps = {}) {
   const [currentStep, setCurrentStep] = useState(step);
   const [currentEmail, setCurrentEmail] = useState(email);
+  const [currentUid] = useState(uid);
+  const [currentToken] = useState(token);
   const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
   const [isSendingSuccessEmail, setIsSendingSuccessEmail] = useState(false);
   const [sendError, setSendError] = useState<string | undefined>();
@@ -163,72 +175,59 @@ export function PasswordResetFlow({
     setIsSendingResetEmail(true);
 
     try {
-      const resetUrl = `/forgot-password?step=3&email=${encodeURIComponent(submittedEmail)}`;
-      const response = await fetch("/api/email/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: submittedEmail,
-          resetUrl,
-        }),
+      const validation = forgotPasswordSchema.safeParse({
+        email: submittedEmail,
       });
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { message?: string }
-          | null;
-
-        throw new Error(
-          payload?.message ?? "We couldn't send the reset email right now.",
-        );
+      if (!validation.success) {
+        throw new Error(validation.error.issues[0]?.message ?? "Invalid email.");
       }
 
+      await requestPasswordReset(validation.data.email);
       setCurrentStep(3);
     } catch (error) {
-      setSendError(
-        error instanceof Error
-          ? error.message
-          : "We couldn't send the reset email right now.",
-      );
+      const normalized = handleAuthError(error);
+      setSendError(normalized.message);
     } finally {
       setIsSendingResetEmail(false);
     }
   };
 
-  const handlePasswordResetSubmit = async () => {
+  const handlePasswordResetSubmit = async (
+    password: string,
+    confirmPassword: string,
+  ) => {
     setSuccessEmailError(undefined);
     setIsSendingSuccessEmail(true);
 
     try {
-      const response = await fetch("/api/email/password-reset-success", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: currentEmail,
-        }),
+      const validation = resetPasswordSchema.safeParse({
+        password,
+        confirmPassword,
       });
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => null)) as
-          | { message?: string }
-          | null;
-
+      if (!validation.success) {
         throw new Error(
-          payload?.message ?? "We couldn't send the success email right now.",
+          validation.error.issues[0]?.message ?? "Invalid password.",
         );
       }
 
+      if (!currentUid || !currentToken) {
+        throw new Error(
+          "Your reset link is missing required token information. Please request a new link.",
+        );
+      }
+
+      await confirmPasswordReset({
+        uid: currentUid,
+        token: currentToken,
+        password: validation.data.password,
+        confirmPassword: validation.data.confirmPassword,
+      });
       setCurrentStep(4);
     } catch (error) {
-      setSuccessEmailError(
-        error instanceof Error
-          ? error.message
-          : "We couldn't send the success email right now.",
-      );
+      const normalized = handleAuthError(error);
+      setSuccessEmailError(normalized.message);
     } finally {
       setIsSendingSuccessEmail(false);
     }

@@ -19,6 +19,8 @@ import {
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { handleAuthError, startSocialAuth } from "@/lib/auth/client";
+import { showSonnerMessage } from "@/components/alert/alert";
 
 type AuthLayoutProps = {
   title: string;
@@ -84,9 +86,14 @@ type AuthFieldProps = {
   type?: string;
   placeholder?: string;
   defaultValue?: string;
+  value?: string;
   autoComplete?: string;
   name?: string;
   required?: boolean;
+  error?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
+  inputClassName?: string;
 };
 
 export function AuthField({
@@ -95,9 +102,14 @@ export function AuthField({
   type = "text",
   placeholder,
   defaultValue,
+  value,
   autoComplete,
   name,
   required,
+  error,
+  onChange,
+  onBlur,
+  inputClassName,
 }: AuthFieldProps) {
   return (
     <Field className="gap-1">
@@ -108,11 +120,16 @@ export function AuthField({
         id={id}
         type={type}
         placeholder={placeholder}
-        defaultValue={defaultValue}
+        {...(value === undefined ? { defaultValue } : { value })}
         autoComplete={autoComplete}
         name={name}
         required={required}
+        aria-invalid={Boolean(error)}
+        onChange={onChange}
+        onBlur={onBlur}
+        className={cn(inputClassName)}
       />
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </Field>
   );
 }
@@ -123,6 +140,10 @@ type PasswordFieldProps = {
   autoComplete?: string;
   name?: string;
   required?: boolean;
+  value?: string;
+  error?: string;
+  onChange?: React.ChangeEventHandler<HTMLInputElement>;
+  onBlur?: React.FocusEventHandler<HTMLInputElement>;
 };
 
 export function PasswordField({
@@ -131,6 +152,10 @@ export function PasswordField({
   autoComplete,
   name = "password",
   required,
+  value,
+  error,
+  onChange,
+  onBlur,
 }: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -146,6 +171,10 @@ export function PasswordField({
           autoComplete={autoComplete}
           name={name}
           required={required}
+          {...(value === undefined ? {} : { value })}
+          onChange={onChange}
+          onBlur={onBlur}
+          aria-invalid={Boolean(error)}
         />
         <InputGroupAddon align="inline-end">
           <InputGroupButton
@@ -164,6 +193,7 @@ export function PasswordField({
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </Field>
   );
 }
@@ -176,18 +206,48 @@ export function AuthSocialButtons() {
         icon={<FaGoogle className="size-6 text-primary" />}
         showLabel={false}
         className="h-12 min-w-0 rounded-lg bg-background p-0 text-muted-foreground shadow-xs hover:bg-background"
+        onClick={() =>
+          void startSocialAuth("google").catch((error) => {
+            const normalized = handleAuthError(error);
+            showSonnerMessage({
+              variant: "delete",
+              title: "Google sign-in unavailable",
+              description: normalized.message,
+            });
+          })
+        }
       />
       <SocialAuthButton
         provider="Apple ID"
         icon={<FaApple className="size-6 text-card" />}
         showLabel={false}
         className="h-12 min-w-0 rounded-lg bg-foreground p-0 text-card hover:bg-foreground hover:text-card"
+        onClick={() =>
+          void startSocialAuth("apple").catch((error) => {
+            const normalized = handleAuthError(error);
+            showSonnerMessage({
+              variant: "delete",
+              title: "Apple sign-in unavailable",
+              description: normalized.message,
+            });
+          })
+        }
       />
       <SocialAuthButton
         provider="Facebook"
         icon={<FaFacebook className="size-6 text-card" />}
         showLabel={false}
         className="h-12 min-w-0 rounded-lg border-[#1877F2] bg-[#1877F2] p-0 text-card hover:bg-[#1877F2] hover:text-card"
+        onClick={() =>
+          void startSocialAuth("facebook").catch((error) => {
+            const normalized = handleAuthError(error);
+            showSonnerMessage({
+              variant: "delete",
+              title: "Facebook sign-in unavailable",
+              description: normalized.message,
+            });
+          })
+        }
       />
     </div>
   );
@@ -210,6 +270,8 @@ export function CheckedAgreement({
   defaultChecked = true,
   name = id,
   required,
+  checked,
+  onCheckedChange,
 }: {
   id: string;
   children: ReactNode;
@@ -217,6 +279,8 @@ export function CheckedAgreement({
   defaultChecked?: boolean;
   name?: string;
   required?: boolean;
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean | "indeterminate") => void;
 }) {
   return (
     <div
@@ -228,8 +292,10 @@ export function CheckedAgreement({
       <Checkbox
         id={id}
         name={name}
-        defaultChecked={defaultChecked}
         required={required}
+        {...(checked === undefined
+          ? { defaultChecked }
+          : { checked, onCheckedChange })}
         className="mt-0.5 size-4"
       />
       <Label

@@ -2,8 +2,8 @@
 
 import { Save } from "lucide-react";
 
-import { DashedSeparator } from "@/components/separator/dashed-separator";
 import { Button } from "@/components/ui/button";
+import { DashedSeparator } from "@/components/separator/dashed-separator";
 import { BasicDetails } from "@/components/accounts/personal-info/basic-details";
 import { Address } from "@/components/accounts/personal-info/address";
 import { Password } from "@/components/accounts/personal-info/password";
