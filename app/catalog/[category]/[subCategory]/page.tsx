@@ -7,8 +7,8 @@ import {
   formatCategoryName,
   type CatalogFilterParams,
 } from "@/lib/catalog";
-import { GetProductItems } from "@/lib/product-items";
 import { SearchResultsHeader } from "@/components/catalog/search-results-header";
+import { fetchAllProducts } from "@/lib/products/all-products";
 
 export default async function SubCategoryPage({
   params,
@@ -31,8 +31,10 @@ export default async function SubCategoryPage({
     { label: formatCategoryName(subCategory) },
   ];
 
+  const products = await fetchAllProducts();
+
   // Filter by category + subcategory first, then by search query within that scope
-  const scopedProducts = GetProductItems().filter(
+  const scopedProducts = products.filter(
     (p) => p.category === category && p.subcategory === subCategory,
   );
   const filteredCount = filterCatalogProducts(scopedProducts, filters).length;

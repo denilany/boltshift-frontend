@@ -11,7 +11,7 @@ import { ProductReviews } from "@/lib/reviews";
 import { SubmitReview } from "@/components/reviews/review-modal";
 import { PenLine } from "lucide-react";
 import { formatCategoryName } from "@/lib/catalog";
-import { GetProductItems } from "@/lib/product-items";
+import { fetchAllProducts } from "@/lib/products/all-products";
 
 const reviews = ProductReviews();
 
@@ -21,7 +21,8 @@ export default async function ProductDetails({
   params: Promise<{ category: string; subCategory: string; id: string }>;
 }) {
   const { category, subCategory, id } = await params;
-  const product = GetProductItems().find(
+  const products = await fetchAllProducts();
+  const product = products.find(
     (p) => String(p.id) === id || p.slug === id,
   );
   const productName = product?.name || id;
