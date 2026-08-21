@@ -36,6 +36,7 @@ export function CartPageClient() {
     fallback: [],
   });
   const [apiCartItems, setApiCartItems] = useState<ApiCartItem[] | null>(null);
+  const [isApiCartReady, setIsApiCartReady] = useState(false);
 
   const dispatchCart = (action: Parameters<typeof cartReducer>[1]) => {
     setCart((currentCart) => cartReducer(currentCart, action));
@@ -47,6 +48,7 @@ export function CartPageClient() {
     }
 
     let isActive = true;
+    setIsApiCartReady(false);
 
     void fetchCart()
       .then((response) => {
@@ -65,6 +67,11 @@ export function CartPageClient() {
       .catch(() => {
         if (isActive) {
           setApiCartItems(null);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsApiCartReady(true);
         }
       });
 
@@ -99,7 +106,7 @@ export function CartPageClient() {
         />
 
         <div className="flex flex-col gap-10 pb-12">
-          {!isHydrated ? (
+          {!isHydrated || !isApiCartReady ? (
             <CartLoadingSkeleton />
           ) : cartItems.length > 0 ? (
             <div className="flex w-full flex-wrap items-start justify-center gap-10">
