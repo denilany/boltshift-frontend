@@ -25,6 +25,7 @@ import {
 } from "@/components/alert/alert";
 import { usePersistentCollection } from "@/hooks/use-persistent-collection";
 import { WishlistLoadingSkeleton } from "@/components/collection-loading-skeleton";
+import { updateCartProduct } from "@/lib/cart/cart-api";
 import {
   addWishlistProduct,
   fetchWishlist,
@@ -197,8 +198,10 @@ export function WishlistPageClient() {
 
     if (hasApiWishlistItems) {
       void Promise.all(
-        visibleWishlistEntries.map(({ productId }) =>
-          moveWishlistProductToCart(productId),
+        visibleWishlistEntries.map(({ productId, quantity }) =>
+          moveWishlistProductToCart(productId).then(() =>
+            updateCartProduct(productId, quantity),
+          ),
         ),
       ).catch(() => {});
     }
@@ -210,7 +213,9 @@ export function WishlistPageClient() {
     );
 
     if (hasApiWishlistItems) {
-      void moveWishlistProductToCart(productId).catch(() => {});
+      void moveWishlistProductToCart(productId)
+        .then(() => updateCartProduct(productId, quantity))
+        .catch(() => {});
     }
 
     dispatchWishlist({ type: "remove", productId });
