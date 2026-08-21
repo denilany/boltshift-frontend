@@ -19,7 +19,7 @@ import {
   addProductToStoredCart,
   isProductInStoredWishlist,
   toggleProductInStoredWishlist,
-} from "@/lib/wishlist";
+} from "@/lib/wishlist/wishlist";
 import { useStoredCartItem } from "@/hooks/use-stored-cart-item";
 
 type ProductCardProps = {

@@ -112,7 +112,7 @@ function normalizeVariants(value: unknown): Variant[] {
   });
 }
 
-function normalizeWishlistProduct(item: unknown): Product | null {
+export function normalizeWishlistProduct(item: unknown): Product | null {
   if (!isWishlistRecord(item)) {
     return null;
   }

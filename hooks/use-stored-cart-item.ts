@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import {
   isProductInStoredCart,
   STORED_COLLECTIONS_CHANGED_EVENT,
-} from "@/lib/wishlist";
+} from "@/lib/wishlist/wishlist";
 
 export function useStoredCartItem(productId: number | string) {
   const [isInCart, setIsInCart] = useState(false);

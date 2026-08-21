@@ -7,7 +7,8 @@ import {
   addWishlistProduct,
   fetchWishlist,
   removeWishlistProduct,
-} from "@/lib/wishlist-api";
+} from "@/lib/wishlist/wishlist-api";
+import { addCartProduct } from "@/lib/cart/cart-api";
 
 export type WishlistEntry = {
   productId: number | string;
@@ -203,6 +204,7 @@ export function addProductToStoredCart(productId: number | string, quantity = 1)
   ]);
 
   writeStoredCart(nextCart);
+  void addCartProduct(productId, Math.max(1, quantity)).catch(() => {});
 
   const wishlist = readStoredWishlist([]);
 

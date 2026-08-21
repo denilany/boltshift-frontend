@@ -8,7 +8,7 @@ import {
   readStoredCart,
   readStoredWishlist,
   STORED_COLLECTIONS_CHANGED_EVENT,
-} from "@/lib/wishlist";
+} from "@/lib/wishlist/wishlist";
 
 type StoredCollectionCounts = {
   wishlistCount: number;

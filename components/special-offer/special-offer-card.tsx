@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { ColorSwatchSelector } from "@/components/ui/color-swatch-selector";
 import { LabelSelector } from "@/components/ui/label-selector";
-import { addProductToStoredCart } from "@/lib/wishlist";
+import { addProductToStoredCart } from "@/lib/wishlist/wishlist";
 import { GetProductItems } from "@/lib/product-items";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { StartRating } from "@/components/rating/rating";

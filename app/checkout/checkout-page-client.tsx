@@ -8,7 +8,7 @@ import { SectionTitle } from "@/components/section-title";
 import { BackButton } from "@/components/back/back";
 import { CheckoutProductCard } from "@/components/checkout/checkout-product-spec";
 import { GetProductItems } from "@/lib/product-items";
-import { cartReducer, getCartItems, type CartEntry } from "@/lib/wishlist";
+import { cartReducer, getCartItems, type CartEntry } from "@/lib/wishlist/wishlist";
 import { PersonalDetailsCard } from "@/components/checkout/personal-details";
 import { ShippingDetailsCard } from "@/components/checkout/shipping-details";
 import { ShippingMethodCard } from "@/components/checkout/shipping-method-card";
@@ -18,6 +18,12 @@ import { OrderCompletionModal } from "@/components/checkout/order-completion-mod
 import { DashedSeparator } from "@/components/separator/dashed-separator";
 import { usePersistentCollection } from "@/hooks/use-persistent-collection";
 import { CheckoutSummarySkeleton } from "@/components/collection-loading-skeleton";
+import {
+  addCartProduct,
+  clearCart,
+  removeCartProduct,
+  updateCartProduct,
+} from "@/lib/cart/cart-api";
 
 type CheckoutPageClientProps = {
   itemsParam?: string | null;
@@ -110,6 +116,7 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
                 items={checkoutItems}
                 onOrderNow={() => {
                   dispatchCheckoutCart({ type: "clear" });
+                  void clearCart().catch(() => {});
                   setOrderCompleteOpen(true);
                 }}
               >
@@ -121,22 +128,34 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
                         product={product}
                         quantity={quantity}
                         onRemove={() =>
-                          dispatchCheckoutCart({
-                            type: "remove",
-                            productId: product.id,
-                          })
+                          (() => {
+                            dispatchCheckoutCart({
+                              type: "remove",
+                              productId: product.id,
+                            });
+                            void removeCartProduct(product.id).catch(() => {});
+                          })()
                         }
                         onDecrement={() =>
-                          dispatchCheckoutCart({
-                            type: "decrement",
-                            productId: product.id,
-                          })
+                          (() => {
+                            dispatchCheckoutCart({
+                              type: "decrement",
+                              productId: product.id,
+                            });
+                            void updateCartProduct(
+                              product.id,
+                              Math.max(1, quantity - 1),
+                            ).catch(() => {});
+                          })()
                         }
                         onIncrement={() =>
-                          dispatchCheckoutCart({
-                            type: "increment",
-                            productId: product.id,
-                          })
+                          (() => {
+                            dispatchCheckoutCart({
+                              type: "increment",
+                              productId: product.id,
+                            });
+                            void addCartProduct(product.id).catch(() => {});
+                          })()
                         }
                       />
                     ))}

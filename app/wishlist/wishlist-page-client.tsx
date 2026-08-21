@@ -18,7 +18,7 @@ import {
   writeStoredCart,
   type WishlistEntry,
   wishlistReducer,
-} from "@/lib/wishlist";
+} from "@/lib/wishlist/wishlist";
 import {
   showSonnerMessage,
   type SonnerMessageProps,
@@ -31,7 +31,7 @@ import {
   moveWishlistProductToCart,
   removeWishlistProduct,
   type WishlistItem as ApiWishlistItem,
-} from "@/lib/wishlist-api";
+} from "@/lib/wishlist/wishlist-api";
 
 export function WishlistPageClient() {
   const products = useMemo(() => GetProductItems(), []);
