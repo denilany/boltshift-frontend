@@ -3,6 +3,11 @@ import {
   persistCollectionRecord,
   readCollectionRecordFromStorage,
 } from "@/lib/offline-storage";
+import {
+  addWishlistProduct,
+  fetchWishlist,
+  removeWishlistProduct,
+} from "@/lib/wishlist-api";
 
 export type WishlistEntry = {
   productId: number | string;
@@ -32,12 +37,7 @@ export type WishlistAction =
       type: "clear";
     };
 
-export const initialWishlist: WishlistEntry[] = [
-  { productId: 5, quantity: 1 },
-  { productId: 6, quantity: 1 },
-  { productId: 7, quantity: 1 },
-  { productId: 8, quantity: 1 },
-];
+export const initialWishlist: WishlistEntry[] = [];
 
 export const initialCart: CartEntry[] = [
   { productId: 1, quantity: 1 },
@@ -47,8 +47,6 @@ export const initialCart: CartEntry[] = [
 const WISHLIST_STORAGE_KEY = "boltshift:wishlist";
 const CART_STORAGE_KEY = "boltshift:cart";
 export const STORED_COLLECTIONS_CHANGED_EVENT = "boltshift:stored-collections-changed";
-
-// TODO: Replace these storage helpers with the shared wishlist state manager once it exists.
 
 // Keep localStorage data narrow before trusting it as app state.
 function isWishlistEntry(entry: unknown): entry is WishlistEntry {
@@ -111,17 +109,8 @@ export function isProductInStoredCart(productId: number | string) {
   return readStoredCart([]).some((item) => item.productId === productId);
 }
 
-// Return the next saved state so the button can stay synced with storage.
-export function toggleProductInStoredWishlist(productId: number | string) {
-  const wishlist = readStoredWishlist([]);
-  const isSaved = wishlist.some((item) => item.productId === productId);
-  const nextWishlist = isSaved
-    ? removeWishlistItem(wishlist, productId)
-    : addWishlistItem(wishlist, productId);
-
-  writeStoredWishlist(nextWishlist);
-
-  return !isSaved;
+export function getCartItems(cart: CartEntry[], products: Product[]) {
+  return getWishlistItems(cart, products);
 }
 
 export function getWishlistItems(
@@ -135,8 +124,20 @@ export function getWishlistItems(
   });
 }
 
-export function getCartItems(cart: CartEntry[], products: Product[]) {
-  return getWishlistItems(cart, products);
+// Return the next saved state so the button can stay synced with storage.
+export function toggleProductInStoredWishlist(productId: number | string) {
+  const wishlist = readStoredWishlist([]);
+  const isSaved = wishlist.some((item) => item.productId === productId);
+  const nextWishlist = isSaved
+    ? removeWishlistItem(wishlist, productId)
+    : addWishlistItem(wishlist, productId);
+
+  writeStoredWishlist(nextWishlist);
+  void (isSaved
+    ? removeWishlistProduct(productId)
+    : addWishlistProduct(productId));
+
+  return !isSaved;
 }
 
 export function updateWishlistQuantity(
@@ -203,6 +204,13 @@ export function addProductToStoredCart(productId: number | string, quantity = 1)
 
   writeStoredCart(nextCart);
 
+  const wishlist = readStoredWishlist([]);
+
+  if (wishlist.some((item) => item.productId === productId)) {
+    writeStoredWishlist(removeWishlistItem(wishlist, productId));
+    void removeWishlistProduct(productId).catch(() => {});
+  }
+
   return nextCart;
 }
 
@@ -255,4 +263,20 @@ export function getWishlistItemCount(wishlist: WishlistEntry[]) {
 
 export function getCartItemCount(cart: CartEntry[]) {
   return cart.reduce((count, item) => count + item.quantity, 0);
+}
+
+export async function syncStoredWishlistFromApi() {
+  try {
+    const wishlist = await fetchWishlist();
+    const nextWishlist = wishlist.items.map((item) => ({
+      productId: item.product.id,
+      quantity: 1,
+    }));
+
+    writeStoredWishlist(nextWishlist);
+
+    return nextWishlist;
+  } catch {
+    return readStoredWishlist([]);
+  }
 }

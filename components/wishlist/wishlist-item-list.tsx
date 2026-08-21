@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ type WishlistItemProps = {
   onRemove: () => void;
   onDecrement: () => void;
   onIncrement: () => void;
-  onAddToCart: () => void;
+  onAddToCart: (quantity: number) => void;
   label?: string;
   colorName?: string;
 };
@@ -32,6 +33,7 @@ export function WishlistItem({
   label,
   colorName,
 }: WishlistItemProps) {
+  const [displayQuantity, setDisplayQuantity] = useState(quantity);
   const itemLabel = label ?? product.variants[0]?.sizes[0] ?? "Default";
   const itemColorName = colorName ?? product.variants[0]?.color ?? "Default";
 
@@ -49,7 +51,7 @@ export function WishlistItem({
   };
 
   const handleConfirm = () => {
-    onAddToCart();
+    onAddToCart(displayQuantity);
 
     if (notification) {
       showSonnerMessage(notification);
@@ -100,15 +102,22 @@ export function WishlistItem({
             variant="ghost"
             size="icon"
             aria-label="Decrease quantity"
-            onClick={onDecrement}
-            disabled={quantity <= 1}
+            onClick={() => {
+              if (displayQuantity <= 1) {
+                return;
+              }
+
+              setDisplayQuantity((currentQuantity) => currentQuantity - 1);
+              onDecrement();
+            }}
+            disabled={displayQuantity <= 1}
             className="h-full flex-1 rounded-none text-muted-foreground"
           >
             <Minus className="size-4" />
           </Button>
 
           <ButtonGroupText className="h-full min-w-8 flex-1 justify-center rounded-none border-0 bg-transparent px-0 text-sm font-semibold shadow-none">
-            {quantity}
+            {displayQuantity}
           </ButtonGroupText>
 
           <Button
@@ -116,7 +125,10 @@ export function WishlistItem({
             variant="ghost"
             size="icon"
             aria-label="Increase quantity"
-            onClick={onIncrement}
+            onClick={() => {
+              setDisplayQuantity((currentQuantity) => currentQuantity + 1);
+              onIncrement();
+            }}
             className="h-full flex-1 rounded-none text-muted-foreground"
           >
             <Plus className="size-4" />
