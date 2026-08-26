@@ -10,6 +10,7 @@ export const TRENDING_PRODUCTS_PATH = "/api/v1/products/trending/";
 export const HOT_DEALS_TODAY_PATH = "/api/v1/products/hot-deals-today/";
 export const FEATURED_PRODUCTS_PATH = "/api/v1/products/featured/";
 export const POPULAR_PRODUCTS_PATH = "/api/v1/products/popular/";
+export const SPECIAL_OFFER_PRODUCTS_PATH = "/api/v1/products/special-offer/";
 export const DEFAULT_PRODUCT_IMAGE = "/products.jpg";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -99,6 +100,7 @@ export type ProductApiItem = {
   hot_deal_today?: unknown;
   featured?: unknown;
   popular?: unknown;
+  special_offer?: unknown;
   primary_image?: unknown;
   category?: unknown;
   subcategory?: unknown;

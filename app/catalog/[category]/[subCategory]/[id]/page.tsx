@@ -42,7 +42,7 @@ export default async function ProductDetails({
     <>
       <BreadcrumbComponent items={items} />
       <div className="pt-4 pb-12">
-        <SpecialOfferCard product={product} />
+        {product ? <SpecialOfferCard product={product} /> : null}
       </div>
 
       {/* Product description */}

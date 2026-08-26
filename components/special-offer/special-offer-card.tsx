@@ -11,7 +11,6 @@ import { ButtonGroup } from "@/components/ui/button-group";
 import { ColorSwatchSelector } from "@/components/ui/color-swatch-selector";
 import { LabelSelector } from "@/components/ui/label-selector";
 import { addProductToStoredCart } from "@/lib/wishlist/wishlist";
-import { GetProductItems } from "@/lib/product-items";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { StartRating } from "@/components/rating/rating";
 import { cn, EditNum } from "@/lib/utils";
@@ -27,12 +26,11 @@ import {
 import { useStoredCartItem } from "@/hooks/use-stored-cart-item";
 
 type SpecialOfferCardProps = {
-  product?: Product;
+  product: Product;
 };
 
 export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
-  const productItems = GetProductItems();
-  const selectedItem = product ?? productItems[0];
+  const selectedItem = product;
   const isInCart = useStoredCartItem(selectedItem.id);
 
   const [selectedColor, setSelectedColor] = useState(
