@@ -34,6 +34,13 @@ type Product = {
   itemsLeft: number;
   ratings: number;
   reviews: number;
+  discountPercent?: number;
+  newArrival?: boolean;
+  trending?: boolean;
+  hotDealToday?: boolean;
+  featured?: boolean;
+  popular?: boolean;
+  specialOffer?: boolean;
   brand?: string;
 
   category: Category;

@@ -57,6 +57,12 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
 
   const price = selectedItem.price;
   const totalPrice = EditNum(price * quantity);
+  const discountPercent = selectedItem.discountPercent ?? 0;
+  const badges = [
+    discountPercent > 0 ? `${discountPercent}% Discount` : null,
+    selectedItem.newArrival ? "New Arrival" : null,
+    selectedItem.trending ? "Trending" : null,
+  ].filter((badge): badge is string => badge !== null);
   const selectedImage =
     selectedItem.images[selectedVariantIndex] ?? selectedItem.images[0];
 
@@ -107,15 +113,11 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
         {/* Mobile screen display */}
         <div className="grid gap-4 min-[1160px]:hidden">
           <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline" className="text-primary border-primary/25">
-              50% Discount
-            </Badge>
-            <Badge variant="outline" className="text-primary border-primary/25">
-              New Arrival
-            </Badge>
-            <Badge variant="outline" className="text-primary border-primary/25">
-              Trending
-            </Badge>
+            {badges.map((badge) => (
+              <Badge key={badge} variant="outline" className="text-primary border-primary/25">
+                {badge}
+              </Badge>
+            ))}
           </div>
 
           <div className="grid gap-4">
@@ -128,7 +130,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
                 <StartRating value={selectedItem.ratings} />
 
                 <p className="text-sm font-normal text-muted-foreground">
-                  (123.46k reviews)
+                  ({selectedItem.reviews} reviews)
                 </p>
               </div>
             </div>
@@ -185,24 +187,11 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
             <CardHeader className="w-full min-w-0 px-0 gap-3">
               {/* Hide on mobile, show on min-[1160px] */}
               <div className="hidden min-[1160px]:flex gap-2">
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  50% Discount
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  New Arrival
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  Trending
-                </Badge>
+                {badges.map((badge) => (
+                  <Badge key={badge} variant="outline" className="text-primary border-primary/25">
+                    {badge}
+                  </Badge>
+                ))}
               </div>
               <div className="grid gap-2">
                 {/* Hide on mobile, show on min-[1160px] */}
@@ -215,24 +204,17 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
                 <div className="hidden min-[1160px]:flex gap-2">
                   <StartRating value={selectedItem.ratings} />
                   <p className="text-sm font-normal text-muted-foreground">
-                    (123.46k reviews)
+                    ({selectedItem.reviews} reviews)
                   </p>
                 </div>
                 <CardDescription className="text-sm line-clamp-3">
-                  Discover the essence of African craftsmanship with our elegant
-                  dress, meticulously designed in Voi town, Kenya. Embracing
-                  vibrant local culture and artistry, each dress is crafted with
-                  care, blending traditional motifs with contemporary flair.
-                  Perfect for any occasion, this dress embodies the rich
-                  heritage and craftsmanship of Kenya, offering both style and
-                  cultural significance. Dress up with a piece that celebrates
-                  authenticity and beauty from Voi town to the world.
+                  {selectedItem.description}
                 </CardDescription>
               </div>
             </CardHeader>
 
             <CardContent className="min-w-0 px-0 grid gap-3">
-              <p className="text-sm font-semibold">SKU:IPH-RED-256-001</p>
+              <p className="text-sm font-semibold">SKU:{selectedItem.id}</p>
 
               {/* Color selector */}
               <div className="grid gap-2">
