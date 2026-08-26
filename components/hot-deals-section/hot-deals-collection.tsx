@@ -1,9 +1,9 @@
 import { ProductCard } from "@/components/product-card/product-card";
-import { GetProductItems } from "@/lib/product-items";
 import { SectionTitle } from "@/components/section-title";
+import { fetchHotDealTodayProducts } from "@/lib/products/hot-deals";
 
-export function HotDealsCollection() {
-  const products = GetProductItems();
+export async function HotDealsCollection() {
+  const products = await fetchHotDealTodayProducts();
   const icon = "/section-title-icons/1F525_Fire_v13_Still 1.svg";
   const title = "Hot Deal Today";
   const alt = "Flamming icon";

@@ -7,6 +7,7 @@ const PRODUCTS_BASE_URL =
 
 export const ALL_PRODUCTS_PATH = "/api/v1/products/";
 export const TRENDING_PRODUCTS_PATH = "/api/v1/products/trending/";
+export const HOT_DEALS_TODAY_PATH = "/api/v1/products/hot-deals-today/";
 export const DEFAULT_PRODUCT_IMAGE = "/products.jpg";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -93,6 +94,7 @@ export type ProductApiItem = {
   review_count?: unknown;
   new_arrival?: unknown;
   trending?: unknown;
+  hot_deal_today?: unknown;
   primary_image?: unknown;
   category?: unknown;
   subcategory?: unknown;
