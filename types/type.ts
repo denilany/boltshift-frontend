@@ -28,7 +28,10 @@ type Product = {
   slug?: string;
   images: string[];
   name: string;
+  excerpt?: string;
   description: string;
+  sku?: string;
+  specifications?: Record<string, string>;
   price: number;
   progress: number;
   itemsLeft: number;

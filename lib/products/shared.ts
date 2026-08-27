@@ -90,9 +90,11 @@ export type ProductApiItem = {
   id?: unknown;
   name?: unknown;
   slug?: unknown;
+  sku?: unknown;
   price?: unknown;
   discount_percent?: unknown;
   excerpt?: unknown;
+  description?: unknown;
   average_rating?: unknown;
   review_count?: unknown;
   new_arrival?: unknown;
@@ -102,11 +104,49 @@ export type ProductApiItem = {
   popular?: unknown;
   special_offer?: unknown;
   primary_image?: unknown;
+  images?: unknown;
   category?: unknown;
   subcategory?: unknown;
   brand?: unknown;
   vendor_name?: unknown;
+  vendor?: unknown;
+  inventory?: unknown;
+  variant_groups?: unknown;
+  specifications?: unknown;
 };
+
+function nestedString(value: unknown, key: string) {
+  return isRecord(value) ? toStringValue(value[key]) : "";
+}
+
+function normalizeImages(item: ProductApiItem) {
+  const images = Array.isArray(item.images)
+    ? item.images.filter((image): image is string => typeof image === "string")
+    : [];
+  const primaryImage = toStringValue(item.primary_image);
+
+  return images.length > 0
+    ? images
+    : [primaryImage || DEFAULT_PRODUCT_IMAGE];
+}
+
+function normalizeVariants(item: ProductApiItem) {
+  if (!Array.isArray(item.variant_groups)) {
+    return [];
+  }
+
+  return item.variant_groups.flatMap((group) => {
+    if (!isRecord(group) || !Array.isArray(group.options)) {
+      return [];
+    }
+
+    return group.options
+      .filter(isRecord)
+      .map((option) => toStringValue(option.value))
+      .filter(Boolean)
+      .map((value) => ({ color: value, sizes: [value] }));
+  });
+}
 
 export function normalizeApiProduct(
   item: ProductApiItem,
@@ -118,20 +158,37 @@ export function normalizeApiProduct(
     return null;
   }
 
-  const categoryLabel = toStringValue(item.category);
-  const subcategoryLabel = toStringValue(item.subcategory);
+  const categoryLabel =
+    toStringValue(item.category) || nestedString(item.category, "name");
+  const subcategoryLabel =
+    toStringValue(item.subcategory) || nestedString(item.subcategory, "name");
   const categorySlug = slugify(categoryLabel || "catalog");
   const subcategorySlug = slugify(subcategoryLabel || categoryLabel || "products");
+  const inventory = isRecord(item.inventory) ? item.inventory : undefined;
+  const itemsLeft = toNumberValue(inventory?.remaining_items);
+  const totalItems = toNumberValue(inventory?.total_items);
+  const specifications = isRecord(item.specifications)
+    ? Object.fromEntries(
+        Object.entries(item.specifications).map(([key, value]) => [
+          key,
+          toStringValue(value),
+        ]),
+      )
+    : undefined;
 
   return {
     id: toIdValue(item.id) || slug,
     slug,
-    images: [toStringValue(item.primary_image) || DEFAULT_PRODUCT_IMAGE],
+    images: normalizeImages(item),
     name,
-    description: toStringValue(item.excerpt),
+    excerpt: toStringValue(item.excerpt),
+    description:
+      toStringValue(item.description) || toStringValue(item.excerpt),
+    sku: toStringValue(item.sku),
+    specifications,
     price: toNumberValue(item.price),
-    progress: 0,
-    itemsLeft: 0,
+    progress: totalItems > 0 ? (itemsLeft / totalItems) * 100 : 0,
+    itemsLeft,
     ratings: toNumberValue(item.average_rating),
     reviews: toNumberValue(item.review_count),
     discountPercent: toNumberValue(item.discount_percent),
@@ -141,10 +198,11 @@ export function normalizeApiProduct(
     featured: toBooleanValue(item.featured),
     popular: toBooleanValue(item.popular),
     specialOffer: toBooleanValue(item.special_offer),
-    brand: toStringValue(item.brand),
+    brand: toStringValue(item.brand) || nestedString(item.brand, "name"),
     category: categorySlug as Product["category"],
     subcategory: subcategorySlug as Product["subcategory"],
-    vendor: toStringValue(item.vendor_name),
-    variants: [],
+    vendor:
+      toStringValue(item.vendor_name) || nestedString(item.vendor, "store_name"),
+    variants: normalizeVariants(item),
   };
 }

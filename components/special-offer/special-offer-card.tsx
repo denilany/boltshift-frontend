@@ -208,13 +208,15 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
                   </p>
                 </div>
                 <CardDescription className="text-sm line-clamp-3">
-                  {selectedItem.description}
+                  {selectedItem.excerpt ?? selectedItem.description}
                 </CardDescription>
               </div>
             </CardHeader>
 
             <CardContent className="min-w-0 px-0 grid gap-3">
-              <p className="text-sm font-semibold">SKU:{selectedItem.id}</p>
+              <p className="text-sm font-semibold">
+                SKU:{selectedItem.sku ?? ""}
+              </p>
 
               {/* Color selector */}
               <div className="grid gap-2">
