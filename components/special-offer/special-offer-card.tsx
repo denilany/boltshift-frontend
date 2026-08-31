@@ -39,6 +39,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
   const [selectedSize, setSelectedSize] = useState(
     selectedItem.variants[0]?.sizes[0] ?? "",
   );
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const selectedVariant =
@@ -46,11 +47,6 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
     selectedItem.variants[0];
 
   const colors = selectedItem.variants.map((v) => v.color);
-  const selectedVariantIndex = Math.max(
-    0,
-    selectedItem.variants.findIndex((variant) => variant.color === selectedColor),
-  );
-
   const isStorage = selectedVariant?.sizes.some(
     (s) => s.toLowerCase().includes("gb") || s.toLowerCase().includes("tb"),
   );
@@ -63,8 +59,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
     selectedItem.newArrival ? "New Arrival" : null,
     selectedItem.trending ? "Trending" : null,
   ].filter((badge): badge is string => badge !== null);
-  const selectedImage =
-    selectedItem.images[selectedVariantIndex] ?? selectedItem.images[0];
+  const selectedImage = selectedItem.images[selectedImageIndex] ?? selectedItem.images[0];
 
   useEffect(() => {
     const firstVariant = selectedItem.variants[0];
@@ -74,6 +69,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
 
     setSelectedColor(firstVariant.color);
     setSelectedSize(firstVariant.sizes[0] ?? "");
+    setSelectedImageIndex(0);
     setQuantity(1);
   }, [selectedItem.id]);
 
@@ -153,24 +149,21 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
           </div>
 
           <div className="p-1 flex gap-3 overflow-x-auto scroll-smooth scrollbar-hide md:max-h-157.5 md:flex-col md:overflow-y-auto lg:max-h-221.5 xl:max-h-143.5">
-            {selectedItem.variants.map((variant, index) => (
+            {selectedItem.images.map((image, index) => (
               <div
-                key={variant.color}
-                onClick={() => {
-                  setSelectedColor(variant.color);
-                  setSelectedSize(variant.sizes[0] ?? "");
-                }}
+                key={`${selectedItem.id}-image-${index}`}
+                onClick={() => setSelectedImageIndex(index)}
                 className={cn(
                   "h-20 w-20 min-w-20 aspect-square rounded-xl relative cursor-pointer transition",
-                  selectedVariantIndex === index
+                  selectedImageIndex === index
                     ? "ring-2 ring-offset-2 ring-ring"
                     : "",
                 )}
               >
                 <AspectRatio ratio={1 / 1} className="relative">
                   <Image
-                    src={selectedItem.images[index] ?? selectedItem.images[0]}
-                    alt={`${selectedItem.name} ${variant.color}`}
+                    src={image}
+                    alt={`${selectedItem.name} image ${index + 1}`}
                     fill
                     sizes="80px"
                     className="object-cover rounded-xl"

@@ -37,6 +37,7 @@ type Product = {
   itemsLeft: number;
   ratings: number;
   reviews: number;
+  reviewItems?: Review[];
   discountPercent?: number;
   newArrival?: boolean;
   trending?: boolean;
@@ -64,7 +65,7 @@ type ProductVariant =
   | "catalog";
 
 type Review = {
-  id: number;
+  id: number | string;
   name: string;
   avatar?: string,
   date: string;
@@ -78,7 +79,7 @@ type Review = {
     dislikes: number;
   };
   product: {
-    id: number;
+    id: number | string;
     name: string;
     image: string;
     price: number;

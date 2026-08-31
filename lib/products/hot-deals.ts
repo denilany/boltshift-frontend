@@ -8,7 +8,7 @@ import {
   type ProductApiItem,
 } from "@/lib/products/shared";
 
-const HOT_DEALS_LIMIT = 8;  
+const HOT_DEALS_LIMIT = 6;  
 
 export async function fetchHotDealTodayProducts(): Promise<Product[]> {
   const response = await fetch(buildProductsUrl(HOT_DEALS_TODAY_PATH), {

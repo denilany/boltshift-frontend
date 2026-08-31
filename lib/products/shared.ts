@@ -1,4 +1,4 @@
-import type { Product } from "@/types/type";
+import type { Product, Review } from "@/types/type";
 
 const PRODUCTS_BASE_URL =
   process.env.NEXT_PUBLIC_PRODUCTS_API_BASE_URL ??
@@ -113,6 +113,7 @@ export type ProductApiItem = {
   inventory?: unknown;
   variant_groups?: unknown;
   specifications?: unknown;
+  reviews?: unknown;
 };
 
 function nestedString(value: unknown, key: string) {
@@ -176,7 +177,7 @@ export function normalizeApiProduct(
       )
     : undefined;
 
-  return {
+  const product: Product = {
     id: toIdValue(item.id) || slug,
     slug,
     images: normalizeImages(item),
@@ -205,4 +206,35 @@ export function normalizeApiProduct(
       toStringValue(item.vendor_name) || nestedString(item.vendor, "store_name"),
     variants: normalizeVariants(item),
   };
+
+  product.reviewItems = Array.isArray(item.reviews)
+    ? item.reviews.filter(isRecord).map((review) => ({
+        id: toIdValue(review.id),
+        name: `Buyer ${toIdValue(review.user) || ""}`.trim(),
+        date: toStringValue(review.created_at).split("T")[0] || "",
+        rating: toNumberValue(review.rating),
+        reviewHeading: toStringValue(review.title),
+        reviewText: toStringValue(review.body),
+        productUploads: Array.isArray(review.images)
+          ? review.images.filter(
+              (image): image is string => typeof image === "string",
+            )
+          : [],
+        reactions: {
+          likes: toNumberValue(review.likes),
+          dislikes: toNumberValue(review.dislikes),
+        },
+        product: {
+          id: product.id,
+          name: product.name,
+          image: product.images[0],
+          price: product.price,
+          category: product.category,
+          subcategory: product.subcategory,
+          vendor: product.vendor,
+        },
+      } satisfies Review))
+    : [];
+
+  return product;
 }

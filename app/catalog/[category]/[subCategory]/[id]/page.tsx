@@ -7,14 +7,11 @@ import { PaginationLinks } from "@/components/pagination/pagination";
 import { BuyerReviewCard } from "@/components/reviews/buyer-review";
 import { StartRating } from "@/components/rating/rating";
 import { Button } from "@/components/ui/button";
-import { ProductReviews } from "@/lib/reviews";
 import { SubmitReview } from "@/components/reviews/review-modal";
 import { PenLine } from "lucide-react";
 import { formatCategoryName } from "@/lib/catalog";
 import { fetchAllProducts } from "@/lib/products/all-products";
 import { fetchProductById } from "@/lib/products/product-details";
-
-const reviews = ProductReviews();
 
 export default async function ProductDetails({
   params,
@@ -22,12 +19,20 @@ export default async function ProductDetails({
   params: Promise<{ category: string; subCategory: string; id: string }>;
 }) {
   const { category, subCategory, id } = await params;
-  const product =
-    (await fetchProductById(id)) ??
-    (await fetchAllProducts()).find(
+  let product = await fetchProductById(id);
+
+  if (!product) {
+    const products = await fetchAllProducts();
+    const listedProduct = products.find(
       (p) => String(p.id) === id || p.slug === id,
     );
+
+    product = listedProduct
+      ? await fetchProductById(String(listedProduct.id)) ?? listedProduct
+      : null;
+  }
   const productName = product?.name || id;
+  const reviews = product?.reviewItems ?? [];
 
   const title = formatCategoryName(category);
   const icon = "/popular-categories-icons/Shopping-bags.svg";
