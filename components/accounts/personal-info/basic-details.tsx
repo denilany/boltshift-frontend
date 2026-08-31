@@ -206,7 +206,7 @@ export function BasicDetails() {
           className="h-auto sm:h-13 max-w-120"
         />
 
-        <div className="w-full max-w-120 flex flex-col gap-1 text-muted-foreground text-xs font-medium">
+        <div className="flex flex-col gap-1 text-muted-foreground text-xs font-medium">
           <Label htmlFor="phone">Phone Number</Label>
           <PhoneInput
             id="phone"
@@ -224,7 +224,7 @@ export function BasicDetails() {
           ) : null}
         </div>
 
-        <div className="w-full max-w-120 flex flex-col gap-1 text-muted-foreground text-xs font-medium">
+        <div className="flex flex-col gap-1 text-muted-foreground text-xs font-medium">
           <Label htmlFor="birthday">Birthday</Label>
           <DatePickerField
             id="birthday"

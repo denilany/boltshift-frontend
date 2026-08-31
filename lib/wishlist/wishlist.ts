@@ -3,9 +3,15 @@ import {
   persistCollectionRecord,
   readCollectionRecordFromStorage,
 } from "@/lib/offline-storage";
+import {
+  addWishlistProduct,
+  fetchWishlist,
+  removeWishlistProduct,
+} from "@/lib/wishlist/wishlist-api";
+import { addCartProduct } from "@/lib/cart/cart-api";
 
 export type WishlistEntry = {
-  productId: number;
+  productId: number | string;
   quantity: number;
 };
 
@@ -14,30 +20,25 @@ export type CartEntry = WishlistEntry;
 export type WishlistAction =
   | {
       type: "add";
-      productId: number;
+      productId: number | string;
     }
   | {
       type: "increment";
-      productId: number;
+      productId: number | string;
     }
   | {
       type: "decrement";
-      productId: number;
+      productId: number | string;
     }
   | {
       type: "remove";
-      productId: number;
+      productId: number | string;
     }
   | {
       type: "clear";
     };
 
-export const initialWishlist: WishlistEntry[] = [
-  { productId: 5, quantity: 1 },
-  { productId: 6, quantity: 1 },
-  { productId: 7, quantity: 1 },
-  { productId: 8, quantity: 1 },
-];
+export const initialWishlist: WishlistEntry[] = [];
 
 export const initialCart: CartEntry[] = [
   { productId: 1, quantity: 1 },
@@ -48,8 +49,6 @@ const WISHLIST_STORAGE_KEY = "boltshift:wishlist";
 const CART_STORAGE_KEY = "boltshift:cart";
 export const STORED_COLLECTIONS_CHANGED_EVENT = "boltshift:stored-collections-changed";
 
-// TODO: Replace these storage helpers with the shared wishlist state manager once it exists.
-
 // Keep localStorage data narrow before trusting it as app state.
 function isWishlistEntry(entry: unknown): entry is WishlistEntry {
   return (
@@ -57,7 +56,7 @@ function isWishlistEntry(entry: unknown): entry is WishlistEntry {
     entry !== null &&
     "productId" in entry &&
     "quantity" in entry &&
-    typeof entry.productId === "number" &&
+    (typeof entry.productId === "number" || typeof entry.productId === "string") &&
     typeof entry.quantity === "number"
   );
 }
@@ -72,7 +71,7 @@ function notifyStoredCollectionsChanged() {
 
 export function addWishlistItem(
   wishlist: WishlistEntry[],
-  productId: number,
+  productId: number | string,
   quantity = 1,
 ) {
   const existingItem = wishlist.find((item) => item.productId === productId);
@@ -103,25 +102,16 @@ export function writeStoredWishlist(wishlist: WishlistEntry[]) {
   notifyStoredCollectionsChanged();
 }
 
-export function isProductInStoredWishlist(productId: number) {
+export function isProductInStoredWishlist(productId: number | string) {
   return readStoredWishlist([]).some((item) => item.productId === productId);
 }
 
-export function isProductInStoredCart(productId: number) {
+export function isProductInStoredCart(productId: number | string) {
   return readStoredCart([]).some((item) => item.productId === productId);
 }
 
-// Return the next saved state so the button can stay synced with storage.
-export function toggleProductInStoredWishlist(productId: number) {
-  const wishlist = readStoredWishlist([]);
-  const isSaved = wishlist.some((item) => item.productId === productId);
-  const nextWishlist = isSaved
-    ? removeWishlistItem(wishlist, productId)
-    : addWishlistItem(wishlist, productId);
-
-  writeStoredWishlist(nextWishlist);
-
-  return !isSaved;
+export function getCartItems(cart: CartEntry[], products: Product[]) {
+  return getWishlistItems(cart, products);
 }
 
 export function getWishlistItems(
@@ -135,13 +125,25 @@ export function getWishlistItems(
   });
 }
 
-export function getCartItems(cart: CartEntry[], products: Product[]) {
-  return getWishlistItems(cart, products);
+// Return the next saved state so the button can stay synced with storage.
+export function toggleProductInStoredWishlist(productId: number | string) {
+  const wishlist = readStoredWishlist([]);
+  const isSaved = wishlist.some((item) => item.productId === productId);
+  const nextWishlist = isSaved
+    ? removeWishlistItem(wishlist, productId)
+    : addWishlistItem(wishlist, productId);
+
+  writeStoredWishlist(nextWishlist);
+  void (isSaved
+    ? removeWishlistProduct(productId)
+    : addWishlistProduct(productId));
+
+  return !isSaved;
 }
 
 export function updateWishlistQuantity(
   wishlist: WishlistEntry[],
-  productId: number,
+  productId: number | string,
   change: number,
 ) {
   return wishlist.map((item) =>
@@ -153,7 +155,7 @@ export function updateWishlistQuantity(
 
 export function removeWishlistItem(
   wishlist: WishlistEntry[],
-  productId: number,
+  productId: number | string,
 ) {
   return wishlist.filter((item) => item.productId !== productId);
 }
@@ -195,13 +197,21 @@ export function writeStoredCart(cart: CartEntry[]) {
   notifyStoredCollectionsChanged();
 }
 
-export function addProductToStoredCart(productId: number, quantity = 1) {
+export function addProductToStoredCart(productId: number | string, quantity = 1) {
   const cart = readStoredCart([]);
   const nextCart = addWishlistToCart(cart, [
     { productId, quantity: Math.max(1, quantity) },
   ]);
 
   writeStoredCart(nextCart);
+  void addCartProduct(productId, Math.max(1, quantity)).catch(() => {});
+
+  const wishlist = readStoredWishlist([]);
+
+  if (wishlist.some((item) => item.productId === productId)) {
+    writeStoredWishlist(removeWishlistItem(wishlist, productId));
+    void removeWishlistProduct(productId).catch(() => {});
+  }
 
   return nextCart;
 }
@@ -255,4 +265,20 @@ export function getWishlistItemCount(wishlist: WishlistEntry[]) {
 
 export function getCartItemCount(cart: CartEntry[]) {
   return cart.reduce((count, item) => count + item.quantity, 0);
+}
+
+export async function syncStoredWishlistFromApi() {
+  try {
+    const wishlist = await fetchWishlist();
+    const nextWishlist = wishlist.items.map((item) => ({
+      productId: item.product.id,
+      quantity: 1,
+    }));
+
+    writeStoredWishlist(nextWishlist);
+
+    return nextWishlist;
+  } catch {
+    return readStoredWishlist([]);
+  }
 }

@@ -1,6 +1,7 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PopularCardContent } from "@/components/popular-products/content";
 import { Separator } from "@/components/ui/separator";
+import { fetchPopularProducts } from "@/lib/products/popular-products";
 
 const CATEGORIES = [
   { id: "feature", label: "Feature Products" },
@@ -8,8 +9,9 @@ const CATEGORIES = [
   { id: "onsale", label: "Onsale Products" },
 ] as const;
 
-export function PopularProductsCard() {
+export async function PopularProductsCard() {
   const defaultValue = CATEGORIES[0].id;
+  const products = await fetchPopularProducts();
 
   return (
     <Tabs defaultValue={defaultValue} className="gap-10">
@@ -32,7 +34,7 @@ export function PopularProductsCard() {
 
       {CATEGORIES.map((category) => (
         <TabsContent key={category.id} value={category.id}>
-          <PopularCardContent key={category.id} />
+          <PopularCardContent key={category.id} products={products} />
         </TabsContent>
       ))}
     </Tabs>

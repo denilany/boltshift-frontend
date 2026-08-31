@@ -100,14 +100,17 @@ export function filterCatalogProducts(
   });
 
   return [...filtered].sort((a, b) => {
+    const aId = typeof a.id === "number" ? a.id : Number(a.id) || 0;
+    const bId = typeof b.id === "number" ? b.id : Number(b.id) || 0;
+
     switch (filters.sort?.toLowerCase()) {
       case "oldest":
-        return a.id - b.id;
+        return aId - bId;
       case "popular":
         return b.reviews - a.reviews;
       case "latest":
       default:
-        return b.id - a.id;
+        return bId - aId;
     }
   });
 }

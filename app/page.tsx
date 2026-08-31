@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { HeroCarousel } from "@/components/hero/hero-carousel";
 import { Navbar, NavbarMobile } from "@/components/navigation/navbar";
 import { VendorScroller } from "@/components/vendor-story/vendor-stories";
@@ -7,7 +8,10 @@ import { FeaturedProducts } from "@/components/featured-products-section/feature
 import { FeaturedStoreSection } from "@/components/store-card/store-section";
 import { SpecialOfferSection } from "@/components/special-offer/Special-offer-collection";
 import { PopularCardSection } from "@/components/popular-products/popular-card-section";
-import { TrendingProductsSection } from "@/components/trending-products/trending-products-section";
+import {
+  TrendingProductsSection,
+  TrendingProductsSectionLoading,
+} from "@/components/trending-products/trending-products-section";
 import { ReviewSection } from "@/components/reviews/reviews-section";
 import { Footer } from "@/components/footer/footer-section";
 
@@ -27,7 +31,9 @@ export default function Home() {
       <FeaturedStoreSection />
       <SpecialOfferSection />
       <PopularCardSection />
-      <TrendingProductsSection />
+      <Suspense fallback={<TrendingProductsSectionLoading />}>
+        <TrendingProductsSection />
+      </Suspense>
       <ReviewSection />
       <Footer />
     </div>

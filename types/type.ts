@@ -24,15 +24,28 @@ export type Variant = {
 };
 
 type Product = {
-  id: number;
+  id: number | string;
+  slug?: string;
   images: string[];
   name: string;
+  excerpt?: string;
   description: string;
+  sku?: string;
+  specifications?: Record<string, string>;
   price: number;
   progress: number;
   itemsLeft: number;
   ratings: number;
   reviews: number;
+  reviewItems?: Review[];
+  discountPercent?: number;
+  newArrival?: boolean;
+  trending?: boolean;
+  hotDealToday?: boolean;
+  featured?: boolean;
+  popular?: boolean;
+  specialOffer?: boolean;
+  brand?: string;
 
   category: Category;
   subcategory: Subcategory;
@@ -52,7 +65,7 @@ type ProductVariant =
   | "catalog";
 
 type Review = {
-  id: number;
+  id: number | string;
   name: string;
   avatar?: string,
   date: string;
@@ -66,7 +79,7 @@ type Review = {
     dislikes: number;
   };
   product: {
-    id: number;
+    id: number | string;
     name: string;
     image: string;
     price: number;

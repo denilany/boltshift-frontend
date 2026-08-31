@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { ColorSwatchSelector } from "@/components/ui/color-swatch-selector";
 import { LabelSelector } from "@/components/ui/label-selector";
-import { addProductToStoredCart } from "@/lib/wishlist";
-import { GetProductItems } from "@/lib/product-items";
+import { addProductToStoredCart } from "@/lib/wishlist/wishlist";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { StartRating } from "@/components/rating/rating";
 import { cn, EditNum } from "@/lib/utils";
@@ -27,12 +26,11 @@ import {
 import { useStoredCartItem } from "@/hooks/use-stored-cart-item";
 
 type SpecialOfferCardProps = {
-  product?: Product;
+  product: Product;
 };
 
 export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
-  const productItems = GetProductItems();
-  const selectedItem = product ?? productItems[0];
+  const selectedItem = product;
   const isInCart = useStoredCartItem(selectedItem.id);
 
   const [selectedColor, setSelectedColor] = useState(
@@ -41,6 +39,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
   const [selectedSize, setSelectedSize] = useState(
     selectedItem.variants[0]?.sizes[0] ?? "",
   );
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const selectedVariant =
@@ -48,19 +47,19 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
     selectedItem.variants[0];
 
   const colors = selectedItem.variants.map((v) => v.color);
-  const selectedVariantIndex = Math.max(
-    0,
-    selectedItem.variants.findIndex((variant) => variant.color === selectedColor),
-  );
-
   const isStorage = selectedVariant?.sizes.some(
     (s) => s.toLowerCase().includes("gb") || s.toLowerCase().includes("tb"),
   );
 
   const price = selectedItem.price;
   const totalPrice = EditNum(price * quantity);
-  const selectedImage =
-    selectedItem.images[selectedVariantIndex] ?? selectedItem.images[0];
+  const discountPercent = selectedItem.discountPercent ?? 0;
+  const badges = [
+    discountPercent > 0 ? `${discountPercent}% Discount` : null,
+    selectedItem.newArrival ? "New Arrival" : null,
+    selectedItem.trending ? "Trending" : null,
+  ].filter((badge): badge is string => badge !== null);
+  const selectedImage = selectedItem.images[selectedImageIndex] ?? selectedItem.images[0];
 
   useEffect(() => {
     const firstVariant = selectedItem.variants[0];
@@ -70,6 +69,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
 
     setSelectedColor(firstVariant.color);
     setSelectedSize(firstVariant.sizes[0] ?? "");
+    setSelectedImageIndex(0);
     setQuantity(1);
   }, [selectedItem.id]);
 
@@ -109,15 +109,11 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
         {/* Mobile screen display */}
         <div className="grid gap-4 min-[1160px]:hidden">
           <div className="flex gap-2 flex-wrap">
-            <Badge variant="outline" className="text-primary border-primary/25">
-              50% Discount
-            </Badge>
-            <Badge variant="outline" className="text-primary border-primary/25">
-              New Arrival
-            </Badge>
-            <Badge variant="outline" className="text-primary border-primary/25">
-              Trending
-            </Badge>
+            {badges.map((badge) => (
+              <Badge key={badge} variant="outline" className="text-primary border-primary/25">
+                {badge}
+              </Badge>
+            ))}
           </div>
 
           <div className="grid gap-4">
@@ -130,7 +126,7 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
                 <StartRating value={selectedItem.ratings} />
 
                 <p className="text-sm font-normal text-muted-foreground">
-                  (123.46k reviews)
+                  ({selectedItem.reviews} reviews)
                 </p>
               </div>
             </div>
@@ -153,24 +149,21 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
           </div>
 
           <div className="p-1 flex gap-3 overflow-x-auto scroll-smooth scrollbar-hide md:max-h-157.5 md:flex-col md:overflow-y-auto lg:max-h-221.5 xl:max-h-143.5">
-            {selectedItem.variants.map((variant, index) => (
+            {selectedItem.images.map((image, index) => (
               <div
-                key={variant.color}
-                onClick={() => {
-                  setSelectedColor(variant.color);
-                  setSelectedSize(variant.sizes[0] ?? "");
-                }}
+                key={`${selectedItem.id}-image-${index}`}
+                onClick={() => setSelectedImageIndex(index)}
                 className={cn(
                   "h-20 w-20 min-w-20 aspect-square rounded-xl relative cursor-pointer transition",
-                  selectedVariantIndex === index
+                  selectedImageIndex === index
                     ? "ring-2 ring-offset-2 ring-ring"
                     : "",
                 )}
               >
                 <AspectRatio ratio={1 / 1} className="relative">
                   <Image
-                    src={selectedItem.images[index] ?? selectedItem.images[0]}
-                    alt={`${selectedItem.name} ${variant.color}`}
+                    src={image}
+                    alt={`${selectedItem.name} image ${index + 1}`}
                     fill
                     sizes="80px"
                     className="object-cover rounded-xl"
@@ -187,24 +180,11 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
             <CardHeader className="w-full min-w-0 px-0 gap-3">
               {/* Hide on mobile, show on min-[1160px] */}
               <div className="hidden min-[1160px]:flex gap-2">
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  50% Discount
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  New Arrival
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="text-primary border-primary/25"
-                >
-                  Trending
-                </Badge>
+                {badges.map((badge) => (
+                  <Badge key={badge} variant="outline" className="text-primary border-primary/25">
+                    {badge}
+                  </Badge>
+                ))}
               </div>
               <div className="grid gap-2">
                 {/* Hide on mobile, show on min-[1160px] */}
@@ -217,24 +197,19 @@ export function SpecialOfferCard({ product }: SpecialOfferCardProps) {
                 <div className="hidden min-[1160px]:flex gap-2">
                   <StartRating value={selectedItem.ratings} />
                   <p className="text-sm font-normal text-muted-foreground">
-                    (123.46k reviews)
+                    ({selectedItem.reviews} reviews)
                   </p>
                 </div>
                 <CardDescription className="text-sm line-clamp-3">
-                  Discover the essence of African craftsmanship with our elegant
-                  dress, meticulously designed in Voi town, Kenya. Embracing
-                  vibrant local culture and artistry, each dress is crafted with
-                  care, blending traditional motifs with contemporary flair.
-                  Perfect for any occasion, this dress embodies the rich
-                  heritage and craftsmanship of Kenya, offering both style and
-                  cultural significance. Dress up with a piece that celebrates
-                  authenticity and beauty from Voi town to the world.
+                  {selectedItem.excerpt ?? selectedItem.description}
                 </CardDescription>
               </div>
             </CardHeader>
 
             <CardContent className="min-w-0 px-0 grid gap-3">
-              <p className="text-sm font-semibold">SKU:IPH-RED-256-001</p>
+              <p className="text-sm font-semibold">
+                SKU:{selectedItem.sku ?? ""}
+              </p>
 
               {/* Color selector */}
               <div className="grid gap-2">

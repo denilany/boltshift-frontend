@@ -14,7 +14,7 @@ services:
     <<: *node-dev
     ports:
       - "3000:3000"
-    command: sh -c "npm ci --no-audit --no-fund && npx next dev"
+    command: sh -c "npm ci --no-audit --no-fund && npx next dev:pwa"
 
   storybook:
     <<: *node-dev

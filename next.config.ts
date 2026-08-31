@@ -54,6 +54,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "ak1.ostkcdn.com",
       },
+      {
+        protocol: "http",
+        hostname: "preface-tasty-target.ngrok-free.dev",
+      },
     ],
   },
   output: "standalone",

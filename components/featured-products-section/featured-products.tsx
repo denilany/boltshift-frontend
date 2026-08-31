@@ -1,9 +1,9 @@
 import { ProductCard } from "@/components/product-card/product-card";
-import { GetProductItems } from "@/lib/product-items";
+import { fetchFeaturedProducts } from "@/lib/products/featured-products";
 import { SectionTitle } from "@/components/section-title";
 
-export function FeaturedProducts() {
-  const products = GetProductItems();
+export async function FeaturedProducts() {
+  const products = await fetchFeaturedProducts();
   const icon = "/section-title-icons/Clipboard.svg";
   const title = "Featured Products";
   const alt = "Clipboard image icon";

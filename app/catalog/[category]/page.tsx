@@ -7,8 +7,8 @@ import {
   formatCategoryName,
   type CatalogFilterParams,
 } from "@/lib/catalog";
-import { GetProductItems } from "@/lib/product-items";
 import { SearchResultsHeader } from "@/components/catalog/search-results-header";
+import { fetchAllProducts } from "@/lib/products/all-products";
 
 export default async function CategoryPage({
   params,
@@ -30,8 +30,10 @@ export default async function CategoryPage({
     { label: formatCategoryName(category) },
   ];
 
+  const products = await fetchAllProducts();
+
   // Filter by category first, then by search query within that category
-  const categoryProducts = GetProductItems().filter(
+  const categoryProducts = products.filter(
     (p) => p.category === category,
   );
   const filteredCount = filterCatalogProducts(categoryProducts, filters).length;

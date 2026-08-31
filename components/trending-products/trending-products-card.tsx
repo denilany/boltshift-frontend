@@ -1,15 +1,21 @@
 import { ProductCard } from "@/components/product-card/product-card";
-import { GetProductItems } from "@/lib/product-items";
-import { ProductVariant } from "@/types/type";
+import type { TrendingProductCardProduct } from "@/lib/products/trending-products";
 
-export function TrendingProductsCard() {
-    const products = GetProductItems();
+type TrendingProductsCardProps = {
+  products: TrendingProductCardProduct[];
+};
 
-    return (
-        <div className="w-full p-1 flex gap-4 overflow-x-auto scrollbar-hide">
-            {products.map((p) => (
-                <ProductCard key={p.id} variant="centered" product={p} />
-            ))}
-        </div>
-    );
+export function TrendingProductsCard({ products }: TrendingProductsCardProps) {
+  return (
+    <div className="w-full p-1 flex gap-4 overflow-x-auto scrollbar-hide">
+      {products.map((product) => (
+        <ProductCard
+          key={product.slug}
+          variant="centered"
+          product={product}
+          href={product.href}
+        />
+      ))}
+    </div>
+  );
 }
