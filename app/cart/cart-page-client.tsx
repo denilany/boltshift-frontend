@@ -56,13 +56,19 @@ export function CartPageClient() {
           return;
         }
 
-        setApiCartItems(response.items);
-        setCart(
-          response.items.map(({ product, quantity }) => ({
-            productId: product.id,
-            quantity,
-          })),
-        );
+        if (response.items.length > 0) {
+          setApiCartItems(response.items);
+          setCart(
+            response.items.map(({ product, quantity }) => ({
+              productId: product.id,
+              quantity,
+            })),
+          );
+          return;
+        }
+
+        // Preserve locally stored items when the API returns an empty cart.
+        setApiCartItems(null);
       })
       .catch(() => {
         if (isActive) {
@@ -80,7 +86,10 @@ export function CartPageClient() {
     };
   }, [isHydrated, setCart]);
 
-  const cartItems = apiCartItems ?? getCartItems(cart, products);
+  const cartItems =
+    apiCartItems !== null && apiCartItems.length > 0
+      ? apiCartItems
+      : getCartItems(cart, products);
 
   return (
     <div className="overflow-x-clip">

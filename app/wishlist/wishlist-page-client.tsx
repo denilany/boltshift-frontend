@@ -70,18 +70,25 @@ export function WishlistPageClient() {
           return;
         }
 
-        setApiWishlistItems(response.items);
-        setApiWishlistQuantities(
-          Object.fromEntries(
-            response.items.map(({ product }) => {
-              const storedQuantity = wishlist.find(
-                (item) => item.productId === product.id,
-              )?.quantity;
+        if (response.items.length > 0) {
+          setApiWishlistItems(response.items);
+          setApiWishlistQuantities(
+            Object.fromEntries(
+              response.items.map(({ product }) => {
+                const storedQuantity = wishlist.find(
+                  (item) => item.productId === product.id,
+                )?.quantity;
 
-              return [String(product.id), Math.max(1, storedQuantity ?? 1)];
-            }),
-          ),
-        );
+                return [String(product.id), Math.max(1, storedQuantity ?? 1)];
+              }),
+            ),
+          );
+          return;
+        }
+
+        // Fall back to the locally stored wishlist when the API returns nothing.
+        setApiWishlistItems(null);
+        setApiWishlistQuantities({});
       })
       .catch(() => {
         if (!isActive) {
@@ -104,7 +111,8 @@ export function WishlistPageClient() {
   }, [isHydrated]);
 
   const localWishlistItems = getWishlistItems(wishlist, products);
-  const hasApiWishlistItems = isApiWishlistReady && apiWishlistItems !== null;
+  const hasApiWishlistItems =
+    isApiWishlistReady && apiWishlistItems !== null && apiWishlistItems.length > 0;
   const wishlistCount = hasApiWishlistItems
     ? apiWishlistItems.length
     : localWishlistItems.length;
