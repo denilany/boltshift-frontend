@@ -33,6 +33,8 @@ type OrderSummaryProps = {
   items?: OrderSummaryItem[];
   children?: ReactNode;
   onOrderNow?: () => void;
+  onCouponCodeChange?: (couponCode: string) => void;
+  isOrderNowLoading?: boolean;
 };
 
 const currencyFormatter = new Intl.NumberFormat("en-KE", {
@@ -100,6 +102,8 @@ export function OrderSummary({
   items = [],
   children,
   onOrderNow,
+  onCouponCodeChange,
+  isOrderNowLoading = false,
 }: OrderSummaryProps) {
   const pathname = usePathname();
   const [voucherCode, setVoucherCode] = useState("");
@@ -207,6 +211,7 @@ export function OrderSummary({
                 const code = event.target.value;
 
                 setVoucherCode(code);
+                onCouponCodeChange?.(code.trim());
                 setSelectedVoucherId(
                   vouchers.find(
                     (voucher) =>
@@ -222,6 +227,7 @@ export function OrderSummary({
               onSelectVoucher={(voucher) => {
                 setSelectedVoucherId(voucher.id);
                 setVoucherCode(voucher.code);
+                onCouponCodeChange?.(voucher.code);
               }}
             />
           </ButtonGroup>
@@ -260,9 +266,10 @@ export function OrderSummary({
             type="button"
             size="lg"
             className="w-full"
+            disabled={isOrderNowLoading}
             onClick={onOrderNow}
           >
-            {checkoutButtonLabel}
+            {isOrderNowLoading ? "Processing..." : checkoutButtonLabel}
             <ArrowRight size="5" />
           </Button>
         ) : (

@@ -6,6 +6,8 @@ x-node-dev: &node-dev
     - .:/app
     - /app/node_modules
     - /app/.next
+  env_file:
+    - .env.local
   environment:
     NODE_ENV: development
 
@@ -14,7 +16,7 @@ services:
     <<: *node-dev
     ports:
       - "3000:3000"
-    command: sh -c "npm ci --no-audit --no-fund && npx next dev:pwa"
+    command: sh -c "npm ci --no-audit --no-fund && npx next dev"
 
   storybook:
     <<: *node-dev

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Navbar, NavbarMobile } from "@/components/navigation/navbar";
 import { Footer } from "@/components/footer/footer-section";
@@ -11,6 +11,7 @@ import { GetProductItems } from "@/lib/product-items";
 import { cartReducer, getCartItems, type CartEntry } from "@/lib/wishlist/wishlist";
 import { PersonalDetailsCard } from "@/components/checkout/personal-details";
 import { ShippingDetailsCard } from "@/components/checkout/shipping-details";
+import type { ShippingDetails } from "@/components/checkout/shipping-details";
 import { ShippingMethodCard } from "@/components/checkout/shipping-method-card";
 import { OrderSummary } from "@/components/cart-quantity/cart-order-summary";
 import { PaymentMethodCard } from "@/components/checkout/payment-method";
@@ -21,9 +22,14 @@ import { CheckoutSummarySkeleton } from "@/components/collection-loading-skeleto
 import {
   addCartProduct,
   clearCart,
+  fetchCart,
   removeCartProduct,
+  type CartItem as ApiCartItem,
   updateCartProduct,
 } from "@/lib/cart/cart-api";
+import { showSonnerMessage } from "@/components/alert/alert";
+import { checkoutOrder } from "@/lib/orders/order-api";
+import { WishlistApiError } from "@/lib/wishlist/wishlist-api";
 
 type CheckoutPageClientProps = {
   itemsParam?: string | null;
@@ -37,14 +43,18 @@ function parseCheckoutItems(itemsParam: string | null | undefined) {
   return itemsParam
     .split(",")
     .map((item) => {
-      const [productId, quantity] = item.split(":").map(Number);
+      const separatorIndex = item.lastIndexOf(":");
+      const productId =
+        separatorIndex === -1 ? item : item.slice(0, separatorIndex);
+      const quantity =
+        separatorIndex === -1 ? 1 : Number(item.slice(separatorIndex + 1));
 
       return {
         productId,
         quantity: Math.max(1, quantity || 1),
       };
     })
-    .filter(({ productId }) => Number.isFinite(productId));
+    .filter(({ productId }) => productId.length > 0);
 }
 
 export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
@@ -63,6 +73,17 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
     hydrateFromStorage: !itemsParam,
   });
   const [orderCompleteOpen, setOrderCompleteOpen] = useState(false);
+  const [apiCheckoutItems, setApiCheckoutItems] = useState<
+    ApiCartItem[] | null
+  >(null);
+  const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
+    office: "",
+    street: "",
+    city: "",
+    country: "",
+  });
 
   const dispatchCheckoutCart = (
     action: Parameters<typeof cartReducer>[1],
@@ -70,10 +91,93 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
     setCheckoutCart((currentCart) => cartReducer(currentCart, action));
   };
 
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    let isActive = true;
+
+    void fetchCart()
+      .then((response) => {
+        if (!isActive || response.items.length === 0) {
+          return;
+        }
+
+        const requestedIds = new Set(
+          initialCheckoutCart.map(({ productId }) => String(productId)),
+        );
+        const items = itemsParam
+          ? response.items.filter((item) =>
+              requestedIds.has(String(item.product.id)),
+            )
+          : response.items;
+
+        if (items.length > 0) {
+          setApiCheckoutItems(items);
+          setCheckoutCart(
+            items.map(({ product, quantity }) => ({
+              productId: product.id,
+              quantity,
+            })),
+          );
+        }
+      })
+      .catch(() => {
+        // Keep using the URL or locally stored cart when the API is unavailable.
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [initialCheckoutCart, isHydrated, itemsParam, setCheckoutCart]);
+
   const checkoutItems = useMemo(
-    () => getCartItems(checkoutCart, products),
-    [checkoutCart, products],
+    () => apiCheckoutItems ?? getCartItems(checkoutCart, products),
+    [apiCheckoutItems, checkoutCart, products],
   );
+
+  async function handleOrderNow() {
+    if (checkoutItems.length === 0 || isOrderSubmitting) {
+      return;
+    }
+
+    setIsOrderSubmitting(true);
+
+    try {
+      await checkoutOrder({
+        items: checkoutItems.map(({ product, quantity }) => ({
+          product_id: product.id,
+          quantity,
+        })),
+        address: {
+          street: [shippingDetails.office, shippingDetails.street]
+            .filter(Boolean)
+            .join(", "),
+          city: shippingDetails.city,
+          state: "",
+          zip: "",
+          country: shippingDetails.country,
+        },
+        ...(couponCode ? { coupon_code: couponCode } : {}),
+      });
+
+      dispatchCheckoutCart({ type: "clear" });
+      void clearCart().catch(() => {});
+      setOrderCompleteOpen(true);
+    } catch (error) {
+      showSonnerMessage({
+        variant: "delete",
+        title: "Unable to place order",
+        description:
+          error instanceof WishlistApiError
+            ? error.message
+            : "Please review your checkout details and try again.",
+      });
+    } finally {
+      setIsOrderSubmitting(false);
+    }
+  }
 
   return (
     <div className="w-full">
@@ -102,7 +206,10 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
           <div className="flex min-w-0 flex-1 flex-col gap-12">
             <PersonalDetailsCard />
             <DashedSeparator />
-            <ShippingDetailsCard />
+            <ShippingDetailsCard
+              value={shippingDetails}
+              onChange={setShippingDetails}
+            />
             <DashedSeparator />
             <ShippingMethodCard />
             <DashedSeparator />
@@ -114,11 +221,9 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
             ) : (
               <OrderSummary
                 items={checkoutItems}
-                onOrderNow={() => {
-                  dispatchCheckoutCart({ type: "clear" });
-                  void clearCart().catch(() => {});
-                  setOrderCompleteOpen(true);
-                }}
+                onOrderNow={() => void handleOrderNow()}
+                onCouponCodeChange={setCouponCode}
+                isOrderNowLoading={isOrderSubmitting}
               >
                 {checkoutItems.length > 0 ? (
                   <div className="flex flex-col">
@@ -133,6 +238,13 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
                               type: "remove",
                               productId: product.id,
                             });
+                            setApiCheckoutItems((currentItems) =>
+                              currentItems === null
+                                ? currentItems
+                                : currentItems.filter(
+                                    (item) => item.product.id !== product.id,
+                                  ),
+                            );
                             void removeCartProduct(product.id).catch(() => {});
                           })()
                         }
@@ -142,6 +254,18 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
                               type: "decrement",
                               productId: product.id,
                             });
+                            setApiCheckoutItems((currentItems) =>
+                              currentItems === null
+                                ? currentItems
+                                : currentItems.map((item) =>
+                                    item.product.id === product.id
+                                      ? {
+                                          ...item,
+                                          quantity: Math.max(1, quantity - 1),
+                                        }
+                                      : item,
+                                  ),
+                            );
                             void updateCartProduct(
                               product.id,
                               Math.max(1, quantity - 1),
@@ -154,6 +278,18 @@ export function CheckoutPageClient({ itemsParam }: CheckoutPageClientProps) {
                               type: "increment",
                               productId: product.id,
                             });
+                            setApiCheckoutItems((currentItems) =>
+                              currentItems === null
+                                ? currentItems
+                                : currentItems.map((item) =>
+                                    item.product.id === product.id
+                                      ? {
+                                          ...item,
+                                          quantity: item.quantity + 1,
+                                        }
+                                      : item,
+                                  ),
+                            );
                             void addCartProduct(product.id).catch(() => {});
                           })()
                         }
