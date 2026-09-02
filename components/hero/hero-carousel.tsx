@@ -1,59 +1,24 @@
-"use client";
+import { HeroCarouselClient } from "./hero-carousel-client";
+import { fetchTrendingProducts } from "@/lib/products/trending-products";
 
-import * as React from "react";
-import { HeroCard } from "./hero-card";
-import { HeroItems } from "@/lib/hero-data";
-import Autoplay from "embla-carousel-autoplay";
-import Fade from 'embla-carousel-fade'
+export async function HeroCarousel() {
+  let products: Awaited<ReturnType<typeof fetchTrendingProducts>> = [];
 
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+  try {
+    products = await fetchTrendingProducts();
+  } catch {
+    products = [];
+  }
 
-export function HeroCarousel() {
-  const [api, setApi] = React.useState<any>(null);
-  const [current, setCurrent] = React.useState(0);
-  const [count, setCount] = React.useState(0);
+  const items = products.slice(0, 5).map((product) => ({
+    id: String(product.id),
+    title: product.name,
+    description: product.description,
+    image: product.images[0],
+    alt: product.name,
+    href: product.href,
+    badge: "Trending",
+  }));
 
-  React.useEffect(() => {
-    if (!api) return;
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap());
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap());
-    });
-  }, [api]);
-
-  const plugin = React.useRef(
-    Autoplay({
-      delay: 8000,
-      stopOnInteraction: true,
-    }),
-  );
-
-  return (
-    <div className="w-full relative">
-      <Carousel
-        setApi={setApi}
-        plugins={[plugin.current, Fade()]}
-        opts={{ loop: true }}
-        className="pt-4 w-full"
-        onMouseEnter={() => plugin.current.stop()}
-        onMouseLeave={() => plugin.current.play()}
-      >
-        <CarouselContent>
-          {HeroItems.map((item) => (
-            <CarouselItem key={item.id}>
-              <HeroCard
-                item={item}
-                count={count}
-                current={current}
-                onDotClick={(i) => api?.scrollTo(i)}
-              />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
-    </div>
-  );
+  return <HeroCarouselClient items={items} />;
 }
